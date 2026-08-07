@@ -1,0 +1,179 @@
+{
+  "scopeName": "source.cpython",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#colors" },
+    { "include": "#lifecycle" },
+    { "include": "#imports" },
+    { "include": "#keywords" },
+    { "include": "#storage" },
+    { "include": "#classes" },
+    { "include": "#functions" },
+    { "include": "#member-access" },
+    { "include": "#types" },
+    { "include": "#constants" },
+    { "include": "#numbers" },
+    { "include": "#variables" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.cpython",
+          "match": "//.*$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.cpython",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            { "name": "constant.character.escape.cpython", "match": "\\\\." }
+          ]
+        }
+      ]
+    },
+    "colors": {
+      "patterns": [
+        {
+          "name": "constant.other.color.cpython",
+          "match": "#[0-9A-Fa-f]{3,8}\\b"
+        }
+      ]
+    },
+    "lifecycle": {
+      "patterns": [
+        {
+          "match": "\\b(on)\\s+(start|update|destroy|collision)\\b",
+          "captures": {
+            "1": { "name": "keyword.control.lifecycle.cpython" },
+            "2": { "name": "entity.name.function.lifecycle.cpython" }
+          }
+        },
+        {
+          "match": "\\b(actor)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.other.actor.cpython" },
+            "2": { "name": "entity.name.type.actor.cpython" }
+          }
+        }
+      ]
+    },
+    "imports": {
+      "patterns": [
+        {
+          "match": "\\b(import)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.control.import.cpython" },
+            "2": { "name": "entity.name.namespace.cpython" }
+          }
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.cpython",
+          "match": "\\b(if|else|while|for|in|return|break|continue|and|or|not)\\b"
+        },
+        {
+          "name": "keyword.operator.assignment.cpython",
+          "match": "\\b(set)\\b"
+        }
+      ]
+    },
+    "storage": {
+      "patterns": [
+        {
+          "name": "storage.type.function.cpython",
+          "match": "\\b(fun)\\b"
+        },
+        {
+          "name": "storage.type.class.cpython",
+          "match": "\\b(class)\\b"
+        }
+      ]
+    },
+    "classes": {
+      "patterns": [
+        {
+          "match": "\\bclass\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "entity.name.type.class.cpython" }
+          }
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "match": "\\bfun\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "entity.name.function.cpython" }
+          }
+        },
+        {
+          "name": "entity.name.function.cpython",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\s*(?=\\()"
+        }
+      ]
+    },
+    "member-access": {
+      "patterns": [
+        {
+          "match": "\\.([A-Za-z_][A-Za-z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "0": { "name": "meta.function-call.member.cpython" },
+            "1": { "name": "entity.name.function.member.cpython" }
+          }
+        },
+        {
+          "match": "\\.([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "variable.other.property.cpython" }
+          }
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.cpython",
+          "match": "\\b(int|float|string|bool|list|dict)\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.cpython",
+          "match": "\\b(true|false|null|fullscreen)\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.cpython",
+          "match": "\\b[0-9]+(\\.[0-9]+)?\\b"
+        }
+      ]
+    },
+    "variables": {
+      "patterns": [
+        {
+          "name": "variable.language.cpython",
+          "match": "\\b(this)\\b"
+        },
+        {
+          "name": "variable.other.readwrite.cpython",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\b"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,31 @@
+# Build / packaging
+build/
+dist/
+*.spec.bak
+logo.iconset/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# IDE / OS
+.vscode/*
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local install leftovers
+*.log
+esempi/_tmp*
+
+# LLVM intermediate (keep sources)
+llvm_backend/build/
+!llvm_backend/build/.gitkeep
+
+# Large local-only
+Cpython_interpreter_64x_win.exe

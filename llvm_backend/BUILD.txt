@@ -1,0 +1,12 @@
+# Build backend JIT (Windows MinGW esempio)
+#
+#   cd llvm_backend
+#   cmake -B build -G "MinGW Makefiles" -DCPYTHON_FORCE_STUB=ON
+#   cmake --build build
+#
+# Con LLVM SDK installato (ORC JIT reale):
+#   cmake -B build -DCPYTHON_FORCE_STUB=OFF
+#   cmake --build build
+#
+# La DLL finisce in llvm_backend/build/libcpython_llvm.dll
+# Opzionale: set CPYTHON_LLVM_DLL=percorso\completo\libcpython_llvm.dll

@@ -1,0 +1,33 @@
+{
+  "hidesExplorerArrows": false,
+  "iconDefinitions": {
+    "_cpython": {
+      "iconPath": "./cpython.png"
+    },
+    "_cpython_svg": {
+      "iconPath": "./cpython.svg"
+    },
+    "_file": {
+      "iconPath": "./file.svg"
+    },
+    "_folder": {
+      "iconPath": "./folder.svg"
+    },
+    "_folder_open": {
+      "iconPath": "./folder-open.svg"
+    }
+  },
+  "file": "_file",
+  "folder": "_folder",
+  "folderExpanded": "_folder_open",
+  "fileExtensions": {
+    "cpy": "_cpython",
+    "cp": "_cpython"
+  },
+  "fileNames": {
+    "prova.cpy": "_cpython"
+  },
+  "languageIds": {
+    "cpython": "_cpython"
+  }
+}
