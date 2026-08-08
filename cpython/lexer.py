@@ -230,6 +230,10 @@ class Lexer:
             self.at_line_start = True
             return self._next_token()
 
+        # Token di contenuto sulla riga corrente (es. '} else {'):
+        # non siamo piu' a inizio riga — evita INDENT spurio dopo '}'.
+        self.at_line_start = False
+
         # String
         if ch in ('"', "'"):
             return self._read_string()

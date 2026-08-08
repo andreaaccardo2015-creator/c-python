@@ -136,17 +136,35 @@ def do_install() -> int:
 
 def _write_cpy_launcher(bin_dir: Path, root: Path) -> None:
     if sys.platform == "win32":
+        # Ricostruisce gli argomenti con virgolette: evita che path con spazi
+        # (es. "c python") si spezzino quando si chiama l'EXE / python.
         (bin_dir / "cpy.bat").write_text(
             f"""@echo off
-setlocal
+setlocal EnableExtensions EnableDelayedExpansion
 set "CPYTHON_HOME={root}"
 set "PYTHONPATH={root};%PYTHONPATH%"
+set "ARGS="
+:cpy_args
+if "%~1"=="" goto cpy_run
+set ARGS=!ARGS! "%~1"
+shift
+goto cpy_args
+:cpy_run
+REM Preferisci python -m cpy (sorgenti aggiornati in CPYTHON_HOME).
+REM L'EXE frozen puo' contenere una CLI piu' vecchia.
+where python >nul 2>&1
+if errorlevel 1 goto try_exe
+python -m cpy !ARGS!
+set "ERR=!ERRORLEVEL!"
+endlocal & exit /b %ERR%
+:try_exe
 if exist "%CPYTHON_HOME%\\Cpython_interpreter_64x_win.exe" (
-  "%CPYTHON_HOME%\\Cpython_interpreter_64x_win.exe" --cli %*
-) else (
-  python -m cpy %*
+  "%CPYTHON_HOME%\\Cpython_interpreter_64x_win.exe" --cli !ARGS!
+  set "ERR=!ERRORLEVEL!"
+  endlocal & exit /b %ERR%
 )
-endlocal
+echo cpy: Python non trovato e EXE assente.
+endlocal & exit /b 1
 """,
             encoding="utf-8",
         )
@@ -271,7 +289,7 @@ def _copy_vscode_ext(cpython_home: Path) -> None:
     ):
         try:
             base.mkdir(parents=True, exist_ok=True)
-            dest = base / "cpython.c-python-0.2.3"
+            dest = base / "cpython.c-python-0.2.10"
             if dest.exists():
                 shutil.rmtree(dest, ignore_errors=True)
             shutil.copytree(ext_src, dest)
@@ -281,10 +299,13 @@ def _copy_vscode_ext(cpython_home: Path) -> None:
 
 def _notify_installed(root: Path) -> None:
     msg = (
-        "C Python installato.\n\n"
-        "- Demone in background\n"
-        "- File .cpy come C Python\n"
-        "- Comando: cpy run tuoFile.cpy\n\n"
+        "C Python installato!\n\n"
+        "- Demone attivo in background\n"
+        "- File .cpy / .cp associati\n"
+        "- Comando disponibile: cpy\n\n"
+        "Apri un NUOVO terminale e prova:\n"
+        "  cpy version\n"
+        "  cpy run tuoFile.cpy\n\n"
         f"Cartella: {root}"
     )
     if os.environ.get("CPYTHON_SILENT"):

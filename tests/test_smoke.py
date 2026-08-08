@@ -65,6 +65,34 @@ class Player
         names = [m.name for m in members]
         self.assertEqual(names, ["OnStart", "OnUpdate"])
 
+    def test_if_else_braces(self):
+        src = """
+x = 1
+if (x == 1) {
+    y = 10
+} else {
+    y = 20
+}
+"""
+        prog = Parser.parse_source(src)
+        self.assertEqual(len(prog.body), 2)
+        if_node = prog.body[1]
+        self.assertTrue(if_node.else_body)
+
+    def test_else_if_braces(self):
+        src = """
+x = 2
+if (x == 1) {
+    y = 1
+} else if (x == 2) {
+    y = 2
+} else {
+    y = 3
+}
+"""
+        prog = Parser.parse_source(src)
+        self.assertEqual(len(prog.body), 2)
+
     def test_actor_simple_syntax(self):
         src = """
 actor player
@@ -87,6 +115,21 @@ class TestInterpreter(unittest.TestCase):
         with patch("sys.stdout", buf):
             interp.run_source('print.log(2 + 3 * 4)\n')
         self.assertIn("14", buf.getvalue())
+
+    def test_if_else_braces_run(self):
+        buf = io.StringIO()
+        src = """
+x = 2
+if (x == 1) {
+    print.log("then")
+} else {
+    print.log("else-ok")
+}
+"""
+        with patch("sys.stdout", buf):
+            Interpreter().run_source(src)
+        self.assertIn("else-ok", buf.getvalue())
+        self.assertNotIn("then", buf.getvalue())
 
     def test_function(self):
         buf = io.StringIO()

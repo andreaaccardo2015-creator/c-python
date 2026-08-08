@@ -9,7 +9,7 @@ on:
 
 jobs:
   windows:
-    name: Windows EXE
+    name: Windows Setup
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,49 +31,22 @@ jobs:
       - name: Build EXE
         run: python -m PyInstaller --noconfirm --clean installer/Cpython_interpreter_64x_win.spec
 
-      - name: Upload EXE
+      - name: CPython_Setup.exe
+        shell: pwsh
+        run: |
+          Copy-Item -Force dist/Cpython_interpreter_64x_win.exe dist/CPython_Setup.exe
+          Get-Item dist/CPython_Setup.exe | Format-List Name, Length
+
+      - name: Upload Setup only
         uses: actions/upload-artifact@v4
         with:
-          name: Cpython_interpreter_64x_win
-          path: dist/Cpython_interpreter_64x_win.exe
-
-  macos:
-    name: macOS .app
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install deps
-        run: |
-          python3 -m pip install -U pip
-          python3 -m pip install -r requirements-daemon.txt pygame
-
-      - name: Icons (.icns)
-        run: |
-          python3 tools/genera_icone_editor.py
-          python3 tools/genera_logo_icns.py
-          if [ ! -f logo.icns ] && [ -d logo.iconset ]; then
-            iconutil -c icns logo.iconset -o logo.icns
-          fi
-
-      - name: Build .app
-        run: bash installer/build_macos.sh
-
-      - name: Upload .app zip
-        uses: actions/upload-artifact@v4
-        with:
-          name: Cpython_interpreter_macos_app
-          path: |
-            dist/Cpython_interpreter.app
-            dist/Cpython_interpreter_macos.dmg
+          name: CPython_Setup
+          path: dist/CPython_Setup.exe
+          if-no-files-found: error
 
   release:
-    name: GitHub Release
-    needs: [windows, macos]
+    name: GitHub Release (solo Setup)
+    needs: [windows]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
@@ -81,21 +54,22 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          name: CPython_Setup
+          path: out
 
-      - name: Pack
-        run: |
-          mkdir -p out
-          cp artifacts/Cpython_interpreter_64x_win/Cpython_interpreter_64x_win.exe out/ || true
-          if [ -d artifacts/Cpython_interpreter_macos_app/Cpython_interpreter.app ]; then
-            cd artifacts/Cpython_interpreter_macos_app
-            zip -r ../../../out/Cpython_interpreter_macos.app.zip Cpython_interpreter.app
-            cd ../../..
-          fi
-          cp artifacts/Cpython_interpreter_macos_app/*.dmg out/ 2>/dev/null || true
-          ls -la out
+      - name: Check
+        run: ls -la out && test -f out/CPython_Setup.exe
 
       - uses: softprops/action-gh-release@v2
         with:
-          files: out/*
+          files: out/CPython_Setup.exe
           generate_release_notes: true
+          body: |
+            ## Windows
+            Scarica **CPython_Setup.exe**, doppio click, installa.
+
+            Poi apri un nuovo terminale:
+            ```
+            cpy version
+            cpy run tuoFile.cpy
+            ```

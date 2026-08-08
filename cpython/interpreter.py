@@ -35,20 +35,49 @@ class Interpreter:
         self._jit_warned = False
         if filename:
             self.search_paths.append(Path(filename).resolve().parent)
-        # package roots
-        root = Path(__file__).resolve().parent.parent
+        # package roots (dev / install utente / PyInstaller)
+        import sys
+
+        root = self._package_root()
         self.search_paths.append(root)
         self.search_paths.append(root / "library")
         self.search_paths.append(root / "cpython" / "stdlib")
         # Python import path for native packages (finityengine, ...)
-        import sys
-
         lib = str(root / "library")
         if lib not in sys.path:
             sys.path.insert(0, lib)
         if str(root) not in sys.path:
             sys.path.insert(0, str(root))
         self._install_builtins()
+
+    @staticmethod
+    def _package_root() -> Path:
+        """Root con cpython/ + library/ (funziona anche da EXE frozen)."""
+        import sys
+
+        candidates: list[Path] = []
+        env = os.environ.get("CPYTHON_HOME")
+        if env:
+            candidates.append(Path(env))
+        here = Path(__file__).resolve().parent.parent
+        candidates.append(here)
+        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+            candidates.append(Path(sys._MEIPASS))  # type: ignore[attr-defined]
+            candidates.append(Path(sys.executable).resolve().parent)
+        try:
+            from daemon.paths import bundle_root, install_root
+
+            candidates.append(install_root())
+            candidates.append(bundle_root())
+        except Exception:
+            pass
+        for root in candidates:
+            if (root / "library").is_dir() and (root / "cpython").is_dir():
+                return root
+        for root in candidates:
+            if (root / "library").is_dir() or (root / "cpython").is_dir():
+                return root
+        return here
 
     def _install_builtins(self) -> None:
         print_mod = NativeModule(

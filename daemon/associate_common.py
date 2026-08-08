@@ -32,8 +32,9 @@ def merge_json_settings(path: Path, associations: dict[str, str]) -> None:
         fa = {}
     fa.update(associations)
     data["files.associations"] = fa
-    if "workbench.iconTheme" not in data:
-        data["workbench.iconTheme"] = "cpython-file-icons"
+    # Tema Seti + logo solo per .cpy/.cp
+    if data.get("workbench.iconTheme") in (None, "cpython-file-icons", "vs-seti"):
+        data["workbench.iconTheme"] = "cpython-seti"
     path.write_text(json.dumps(data, indent=4, ensure_ascii=False) + "\n", encoding="utf-8")
 
 

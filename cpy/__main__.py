@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
 
 DEFAULT = "http://127.0.0.1:39271"
+__version__ = "0.2.2"
 
 
 def _post(path: str, payload: dict, timeout: float = 120.0) -> dict:
@@ -40,11 +42,52 @@ def _notify_daemon(path: Path, event: str = "run") -> None:
         pass
 
 
+def _ensure_repo_on_path() -> None:
+    """Garantisce che cpython/library siano importabili (dev, install, frozen)."""
+    candidates: list[Path] = []
+    here = Path(__file__).resolve().parent.parent
+    candidates.append(here)
+    env_home = os.environ.get("CPYTHON_HOME")
+    if env_home:
+        candidates.append(Path(env_home))
+    try:
+        from daemon.paths import bundle_root, install_root
+
+        candidates.append(install_root())
+        candidates.append(bundle_root())
+    except Exception:
+        pass
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        candidates.append(Path(sys._MEIPASS))  # type: ignore[attr-defined]
+
+    for root in candidates:
+        if (root / "cpython").is_dir() or (root / "library").is_dir():
+            s = str(root)
+            if s not in sys.path:
+                sys.path.insert(0, s)
+            return
+    if str(here) not in sys.path:
+        sys.path.insert(0, str(here))
+
+
+def _resolve_file(parts: list[str] | str) -> Path:
+    """Ricompone percorsi spezzati dallo spazio (es. 'c python')."""
+    if isinstance(parts, str):
+        raw = parts
+    else:
+        raw = " ".join(parts)
+    raw = raw.strip().strip('"').strip("'")
+    path = Path(raw).expanduser()
+    if path.is_file():
+        return path.resolve()
+    # Fallback: prova a risolvere anche se spezzato in modo strano
+    alt = Path(raw.replace("/", os.sep)).expanduser()
+    return alt.resolve()
+
+
 def _run_local(path: Path, jit: bool) -> int:
     """Esegue nel terminale corrente (stdin/stdout reali → getinput funziona)."""
-    root = Path(__file__).resolve().parent.parent
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
+    _ensure_repo_on_path()
 
     from cpython.errors import CPythonError
     from cpython.interpreter import Interpreter
@@ -69,8 +112,12 @@ def _run_local(path: Path, jit: bool) -> int:
         return 1
 
 
-def cmd_run(file: str, jit: bool, via_daemon: bool = False) -> int:
-    path = Path(file).resolve()
+def cmd_run(file: list[str] | str, jit: bool, via_daemon: bool = False) -> int:
+    try:
+        path = _resolve_file(file)
+    except Exception:
+        print(f"File non trovato: {file}", file=sys.stderr)
+        return 1
     if not path.is_file():
         print(f"File non trovato: {path}", file=sys.stderr)
         return 1
@@ -103,7 +150,12 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="cmd")
 
     run_p = sub.add_parser("run", help="Esegue un file .cpy")
-    run_p.add_argument("file", help="Percorso file .cpy")
+    # nargs='+' ricompone percorsi con spazi spezzati da cmd/PowerShell/bat
+    run_p.add_argument(
+        "file",
+        nargs="+",
+        help="Percorso file .cpy (anche con spazi nel path)",
+    )
     run_p.add_argument("--no-jit", action="store_true")
     run_p.add_argument(
         "--daemon",
@@ -126,7 +178,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"offline: {e}")
             return 1
     if args.cmd == "version":
-        print("cpy 0.2.1 (C Python client)")
+        print(f"cpy {__version__} (C Python client)")
         return 0
 
     parser.print_help()

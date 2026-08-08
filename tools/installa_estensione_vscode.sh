@@ -15,8 +15,8 @@ fi
 install_one() {
   local root="$1"
   mkdir -p "$root"
-  local dest="$root/cpython.c-python-0.2.3"
-  rm -rf "$dest" "$root/cpython.c-python-0.2.2" "$root/cpython.c-python-0.2.1" "$root/cpython.c-python-0.2.0" 2>/dev/null || true
+  local dest="$root/cpython.c-python-0.2.10"
+  rm -rf "$dest" "$root/cpython.c-python-0.2.9" "$root/cpython.c-python-0.2.8" "$root/cpython.c-python-0.2.7" "$root/cpython.c-python-0.2.6" "$root/cpython.c-python-0.2.5" "$root/cpython.c-python-0.2.4" "$root/cpython.c-python-0.2.3" "$root/cpython.c-python-0.2.2" "$root/cpython.c-python-0.2.1" "$root/cpython.c-python-0.2.0" 2>/dev/null || true
   mkdir -p "$dest"
   cp -R "$EXT_SRC/." "$dest/"
   if [[ -f "$CPYTHON_HOME/logo.png" ]]; then

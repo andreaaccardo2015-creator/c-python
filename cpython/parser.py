@@ -137,8 +137,14 @@ class Parser:
         then_body = self._block()
         else_body: list[ast.Node] = []
         self._skip_newlines()
+        # } else {  /  else {  /  else if (...)
         if self._match(TokenType.ELSE):
-            else_body = self._block()
+            self._skip_newlines()
+            if self._check(TokenType.IF):
+                # else if (...) → annidato
+                else_body = [self._if_stmt()]
+            else:
+                else_body = self._block()
         return ast.If(condition=cond, then_body=then_body, else_body=else_body, line=tok.line, column=tok.column)
 
     def _while_stmt(self) -> ast.While:

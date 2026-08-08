@@ -174,9 +174,18 @@ async function runCurrentFile(uri) {
 
   const term =
     vscode.window.terminals.find((t) => t.name === "C Python") ||
-    vscode.window.createTerminal("C Python");
+    vscode.window.createTerminal({
+      name: "C Python",
+      shellPath: process.platform === "win32" ? "cmd.exe" : undefined,
+    });
   term.show(true);
-  term.sendText(`cpy run "${file}"`);
+  // Path con spazi (cartella "c python"): passa sempre da cmd /c su Windows
+  const safe = String(file).replace(/"/g, "");
+  if (process.platform === "win32") {
+    term.sendText(`cmd /c cpy run "${safe}"`);
+  } else {
+    term.sendText(`cpy run "${safe}"`);
+  }
 }
 
 function activate(context) {
@@ -193,10 +202,11 @@ function activate(context) {
     vscode.commands.registerCommand("cpython.runCurrentFile", (uri) => runCurrentFile(uri))
   );
 
-  // Icona logo al posto del file di testo per .cpy / .cp
+  // Tema Seti + logo C Python SOLO su .cpy/.cp (non toglie le altre icone)
   const wb = vscode.workspace.getConfiguration("workbench");
-  if (wb.get("iconTheme") !== "cpython-file-icons") {
-    wb.update("iconTheme", "cpython-file-icons", vscode.ConfigurationTarget.Global);
+  const theme = wb.get("iconTheme");
+  if (!theme || theme === "cpython-file-icons" || theme === "vs-seti" || theme === "vs-minimal") {
+    wb.update("iconTheme", "cpython-seti", vscode.ConfigurationTarget.Global);
   }
 
   // Appena apri/crei .cpy → linguaggio C Python + segnale demone + icona linguaggio

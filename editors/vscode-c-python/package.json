@@ -2,19 +2,21 @@
   "name": "c-python",
   "displayName": "C Python",
   "description": "Linguaggio C Python: logo, syntax highlight, esecuzione via demone",
-  "version": "0.2.3",
+  "version": "0.2.10",
   "publisher": "cpython",
+  "private": true,
   "icon": "media/icon.png",
   "engines": {
-    "vscode": "^1.80.0"
+    "vscode": "^1.88.0"
   },
-  "categories": ["Programming Languages"],
+  "categories": [
+    "Programming Languages"
+  ],
   "activationEvents": [
-    "onStartupFinished",
-    "workspaceContains:**/*.cpy",
-    "workspaceContains:**/*.cp"
+    "onStartupFinished"
   ],
   "main": "./extension.js",
+  "scripts": {},
   "contributes": {
     "commands": [
       {
@@ -96,8 +98,13 @@
     "languages": [
       {
         "id": "cpython",
-        "aliases": ["C Python"],
-        "extensions": [".cpy", ".cp"],
+        "aliases": [
+          "C Python"
+        ],
+        "extensions": [
+          ".cpy",
+          ".cp"
+        ],
         "configuration": "./language-configuration.json",
         "icon": {
           "light": "./media/cpython-lang.svg",
@@ -114,8 +121,13 @@
     ],
     "iconThemes": [
       {
+        "id": "cpython-seti",
+        "label": "C Python (Seti + logo .cpy)",
+        "path": "./fileicons/cpython-seti-icon-theme.json"
+      },
+      {
         "id": "cpython-file-icons",
-        "label": "C Python Icons",
+        "label": "C Python Icons (solo logo, senza Seti)",
         "path": "./fileicons/cpython-icon-theme.json"
       }
     ],
@@ -124,7 +136,7 @@
         "*.cpy": "cpython",
         "*.cp": "cpython"
       },
-      "workbench.iconTheme": "cpython-file-icons",
+      "workbench.iconTheme": "cpython-seti",
       "[cpython]": {
         "editor.tabSize": 4,
         "editor.insertSpaces": true
@@ -137,7 +149,10 @@
               "entity.name.function.member.cpython",
               "entity.name.function.lifecycle.cpython"
             ],
-            "settings": { "foreground": "#DCDCAA", "fontStyle": "bold" }
+            "settings": {
+              "foreground": "#DCDCAA",
+              "fontStyle": "bold"
+            }
           },
           {
             "scope": [
@@ -145,39 +160,85 @@
               "entity.name.type.actor.cpython",
               "entity.name.namespace.cpython"
             ],
-            "settings": { "foreground": "#4EC9B0", "fontStyle": "bold" }
+            "settings": {
+              "foreground": "#4EC9B0",
+              "fontStyle": "bold"
+            }
           },
           {
-            "scope": ["variable.other.property.cpython"],
-            "settings": { "foreground": "#9CDCFE" }
+            "scope": [
+              "variable.other.property.cpython"
+            ],
+            "settings": {
+              "foreground": "#9CDCFE"
+            }
           },
           {
-            "scope": ["storage.type.cpython", "storage.type.function.cpython", "storage.type.class.cpython"],
-            "settings": { "foreground": "#569CD6", "fontStyle": "bold" }
+            "scope": [
+              "storage.type.cpython",
+              "storage.type.function.cpython",
+              "storage.type.class.cpython"
+            ],
+            "settings": {
+              "foreground": "#569CD6",
+              "fontStyle": "bold"
+            }
           },
           {
-            "scope": ["keyword.control.cpython", "keyword.control.import.cpython", "keyword.control.lifecycle.cpython", "keyword.other.actor.cpython", "keyword.operator.assignment.cpython"],
-            "settings": { "foreground": "#C586C0" }
+            "scope": [
+              "keyword.control.cpython",
+              "keyword.control.import.cpython",
+              "keyword.control.lifecycle.cpython",
+              "keyword.other.actor.cpython",
+              "keyword.operator.assignment.cpython"
+            ],
+            "settings": {
+              "foreground": "#C586C0"
+            }
           },
           {
-            "scope": ["constant.language.cpython", "constant.numeric.cpython", "constant.other.color.cpython"],
-            "settings": { "foreground": "#B5CEA8" }
+            "scope": [
+              "constant.language.cpython",
+              "constant.numeric.cpython",
+              "constant.other.color.cpython"
+            ],
+            "settings": {
+              "foreground": "#B5CEA8"
+            }
           },
           {
-            "scope": ["string.quoted.double.cpython"],
-            "settings": { "foreground": "#CE9178" }
+            "scope": [
+              "string.quoted.double.cpython"
+            ],
+            "settings": {
+              "foreground": "#CE9178"
+            }
           },
           {
-            "scope": ["comment.line.double-slash.cpython"],
-            "settings": { "foreground": "#6A9955", "fontStyle": "italic" }
+            "scope": [
+              "comment.line.double-slash.cpython"
+            ],
+            "settings": {
+              "foreground": "#6A9955",
+              "fontStyle": "italic"
+            }
           },
           {
-            "scope": ["variable.other.readwrite.cpython"],
-            "settings": { "foreground": "#E0E0E0" }
+            "scope": [
+              "variable.other.readwrite.cpython"
+            ],
+            "settings": {
+              "foreground": "#E0E0E0"
+            }
           },
           {
-            "scope": ["variable.language.cpython"],
-            "settings": { "foreground": "#569CD6", "fontStyle": "italic" }
+            "scope": [
+              "variable.language.cpython"
+            ],
+            "settings": {
+              "foreground": "#569CD6",
+              "fontStyle": "italic"
+            }
           }
         ]
       }

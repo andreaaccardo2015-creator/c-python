@@ -11,8 +11,9 @@ if errorlevel 1 (
 )
 if exist "dist\Cpython_interpreter_64x_win.exe" (
   echo.
-  echo OK: dist\Cpython_interpreter_64x_win.exe
-  echo Esegui l'EXE una volta per installare (tray + .cpy + cpy run).
+  copy /Y "dist\Cpython_interpreter_64x_win.exe" "dist\CPython_Setup.exe" >nul
+  echo OK: dist\CPython_Setup.exe
+  echo Doppio click su CPython_Setup.exe per installare.
 ) else (
   echo EXE non trovato in dist\
   exit /b 1
