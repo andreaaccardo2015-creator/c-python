@@ -32,6 +32,17 @@ def _find_seti() -> Path | None:
     return None
 
 
+def _rebase(path: str) -> str:
+    """Riporta un path relativo del tema Seti dentro ./seti-base/.
+
+    Seti usa sia './x.svg' che 'x.svg': entrambe le forme vanno riscritte,
+    altrimenti l'asset non viene trovato dal tema che vive in fileicons/.
+    """
+    if not path or path.startswith(("./seti-base/", "data:", "http")):
+        return path
+    return "./seti-base/" + path.lstrip("./")
+
+
 def main() -> int:
     seti = _find_seti()
     if seti is None:
@@ -78,23 +89,14 @@ def main() -> int:
     langs["cpython"] = "_cpython_file"
 
     # Tema finale vive in fileicons/ ma usa asset in seti-base/
-    # Quindi riscriviamo font e iconPath relativi
     for font in data.get("fonts", []):
-        if "src" in font:
-            for src in font["src"]:
-                p = src.get("path", "")
-                if p.startswith("./"):
-                    src["path"] = "./seti-base/" + p[2:]
-                elif not p.startswith("./seti-base"):
-                    src["path"] = "./seti-base/" + p.lstrip("./")
+        for src in font.get("src", []):
+            if "path" in src:
+                src["path"] = _rebase(src["path"])
 
-    for key, val in defs.items():
+    for val in defs.values():
         if isinstance(val, dict) and "iconPath" in val:
-            p = val["iconPath"]
-            if p.startswith("./") and not p.startswith("./seti-base/") and not p.startswith("./cpython"):
-                val["iconPath"] = "./seti-base/" + p[2:]
-            elif p == "./cpython.png":
-                val["iconPath"] = "./seti-base/cpython.png"
+            val["iconPath"] = _rebase(val["iconPath"])
 
     # Il JSON tema sta in fileicons/cpython-seti-icon-theme.json
     THEME_OUT.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

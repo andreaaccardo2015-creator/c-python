@@ -89,6 +89,9 @@ class Interpreter:
         )
         self.globals.define("print", print_mod)
         self.globals.define("getinput", NativeFunction("getinput", self._builtin_getinput))
+        self.globals.define(
+            "getcollision", NativeFunction("getcollision", self._builtin_getcollision)
+        )
         self.globals.define("range", NativeFunction("range", self._builtin_range))
         self.globals.define("len", NativeFunction("len", lambda x: len(x)))
         self.globals.define("str", NativeFunction("str", lambda x: str(x)))
@@ -112,6 +115,15 @@ class Interpreter:
         # Official: print.output("la tua operazione fa:", numero1 + numero2)
         parts = [self._stringify(a) for a in args]
         print(" ".join(parts))
+
+    def _builtin_getcollision(self, name: Any = None) -> bool:
+        """if (getcollision "muro") — l'actor dello script corrente tocca 'name'?"""
+        try:
+            import finityengine
+
+            return bool(finityengine.get_collision(name))
+        except Exception:
+            return False
 
     def _builtin_getinput(self, prompt: Any = "") -> Any:
         kind = "string"
@@ -280,7 +292,7 @@ class Interpreter:
             return_type=node.return_type,
         )
         # Lifecycle legati all'actor corrente (script allocato sull'Actor)
-        if node.name in ("OnStart", "OnUpdate", "OnCollision") and self.current_actor is not None:
+        if node.name in ("OnStart", "OnUpdate", "OnFixedUpdate", "OnCollision") and self.current_actor is not None:
             self.current_actor.bind_handler(node.name, fn, self)
             return
         if self.enable_jit:
@@ -673,7 +685,15 @@ class Interpreter:
         raise RuntimeError_(f"Modulo non trovato: {name}")
 
     def _load_native_lib(self, name: str) -> NativeModule:
+        import importlib
         import importlib.util
+
+        # finityengine tiene un singleton (_engine) usato anche da 'actor ...'
+        # e da screen.create via import Python normale: va riusata la stessa
+        # istanza, altrimenti esistono due motori con due finestre.
+        if name == "finityengine":
+            package = importlib.import_module("finityengine")
+            return package.create_cp_module(self)
 
         root = Path(__file__).resolve().parent.parent
         init_file = root / "library" / name / "__init__.py"

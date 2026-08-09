@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from . import DEFAULT_HOST, DEFAULT_PORT
+from . import DEFAULT_HOST, DEFAULT_PORT, __version__
 
 
 def run_cpy_file(path: Path, enable_jit: bool = True) -> dict[str, Any]:
@@ -82,7 +82,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         path = urlparse(self.path).path
         if path in ("/", "/health"):
-            self._json(200, {"ok": True, "service": "CPython", "version": "0.2.0"})
+            self._json(200, {"ok": True, "service": "CPython", "version": __version__})
             return
         self._json(404, {"ok": False, "error": "not found"})
 
@@ -126,6 +126,17 @@ class Handler(BaseHTTPRequestHandler):
         self._json(404, {"ok": False, "error": "not found"})
 
 
+class _Server(ThreadingHTTPServer):
+    """Server del demone.
+
+    Su Windows SO_REUSEADDR permette a un secondo processo di bindare la stessa
+    porta: le richieste finirebbero a caso su uno dei due demoni. Disabilitandolo
+    il secondo avvio fallisce con OSError, cosi' resta sempre un solo demone.
+    """
+
+    allow_reuse_address = sys.platform != "win32"
+    daemon_threads = True
+
+
 def serve(host: str = DEFAULT_HOST, port: int = DEFAULT_PORT) -> ThreadingHTTPServer:
-    httpd = ThreadingHTTPServer((host, port), Handler)
-    return httpd
+    return _Server((host, port), Handler)

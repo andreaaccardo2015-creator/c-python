@@ -335,10 +335,10 @@
       "fontColor": "#d4d7d6"
     },
     "_cursor": {
-      "iconPath": "cursor_mini.svg"
+      "iconPath": "./seti-base/cursor_mini.svg"
     },
     "_cursor_light": {
-      "iconPath": "cursor_mini_light.svg"
+      "iconPath": "./seti-base/cursor_mini_light.svg"
     },
     "_docker_light": {
       "fontCharacter": "\\E025",

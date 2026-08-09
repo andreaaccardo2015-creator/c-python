@@ -131,6 +131,17 @@ if (x == 1) {
         self.assertIn("else-ok", buf.getvalue())
         self.assertNotIn("then", buf.getvalue())
 
+    def test_typed_var_juxtaposed_initializer(self):
+        """string name getinput(...) senza '=' deve salvare il valore."""
+        buf = io.StringIO()
+        src = """
+string name getinput("n:")
+print.log("HI-" + name)
+"""
+        with patch("builtins.input", return_value="andy"), patch("sys.stdout", buf):
+            Interpreter().run_source(src)
+        self.assertIn("HI-andy", buf.getvalue())
+
     def test_function(self):
         buf = io.StringIO()
         src = """

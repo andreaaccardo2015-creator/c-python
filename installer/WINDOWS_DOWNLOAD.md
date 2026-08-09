@@ -1,8 +1,10 @@
 # Download Windows
 
-Su GitHub (Release) c’è **solo**:
+Repo pubblico **solo setup** (niente codice):
 
-**`CPython_Setup.exe`** → doppio click → installa C Python.
+https://github.com/andreaaccardo2015-creator/cpython-setup
+
+Release: **`CPython_Setup.exe`** → doppio click → installa.
 
 Poi, in un nuovo terminale:
 
@@ -10,3 +12,5 @@ Poi, in un nuovo terminale:
 cpy version
 cpy run tuoFile.cpy
 ```
+
+Il codice sorgente resta in `c-python` (sviluppo). Per gli utenti finali usa solo `cpython-setup`.

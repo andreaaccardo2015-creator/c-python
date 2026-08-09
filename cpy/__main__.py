@@ -11,7 +11,17 @@ import urllib.request
 from pathlib import Path
 
 DEFAULT = "http://127.0.0.1:39271"
-__version__ = "0.2.2"
+
+
+def _version() -> str:
+    """Versione condivisa con il pacchetto cpython (fonte di verita' unica)."""
+    try:
+        _ensure_repo_on_path()
+        from cpython import __version__ as v
+
+        return str(v)
+    except Exception:
+        return "0.3.0"
 
 
 def _post(path: str, payload: dict, timeout: float = 120.0) -> dict:
@@ -178,7 +188,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"offline: {e}")
             return 1
     if args.cmd == "version":
-        print(f"cpy {__version__} (C Python client)")
+        print(f"cpy {_version()} (C Python client)")
         return 0
 
     parser.print_help()

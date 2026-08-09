@@ -23,6 +23,11 @@ jobs:
           python -m pip install -U pip
           python -m pip install -r requirements-daemon.txt pygame
 
+      - name: Test
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m unittest discover -s tests -v
+
       - name: Icons
         run: |
           python tools/genera_icone_editor.py

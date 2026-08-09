@@ -222,11 +222,12 @@ class Parser:
         mapping = {
             "start": "OnStart",
             "update": "OnUpdate",
+            "fixedupdate": "OnFixedUpdate",
             "collision": "OnCollision",
         }
         if event_name not in mapping:
             raise ParseError(
-                f"Evento 'on {event_name}' non supportato (usa start, update, collision)",
+                f"Evento 'on {event_name}' non supportato (usa start, update, fixedupdate, collision)",
                 event.line,
                 event.column,
             )
@@ -237,8 +238,8 @@ class Parser:
                 while self._match(TokenType.COMMA):
                     params.append(self._param())
             self._expect(TokenType.RPAREN, "Atteso ')' dopo parametri di on")
-        elif event_name == "update":
-            # default: on update { } => OnUpdate(float dt)
+        elif event_name in ("update", "fixedupdate"):
+            # default: on update { } => OnUpdate(float dt)  (idem fixedupdate)
             params = [("float", "dt")]
         elif event_name == "collision":
             params = [("any", "other")]
@@ -313,6 +314,16 @@ class Parser:
         name = self._expect(TokenType.IDENT, "Atteso nome variabile")
         value = None
         if self._match(TokenType.EQ) or self._match(TokenType.EQEQ):
+            value = self._expression()
+        elif not self._check(
+            TokenType.NEWLINE,
+            TokenType.SEMICOLON,
+            TokenType.DEDENT,
+            TokenType.RBRACE,
+            TokenType.EOF,
+            TokenType.INDENT,
+        ):
+            # Stile senza '=': string name getinput("...") / int port random.int(1, 6)
             value = self._expression()
         self._match(TokenType.SEMICOLON)
         return ast.VarDecl(
@@ -407,6 +418,12 @@ class Parser:
                 args = self._arg_list()
                 self._expect(TokenType.RPAREN, "Atteso ')' dopo argomenti")
                 node = ast.Call(callee=node, args=args, line=node.line, column=node.column)
+            elif isinstance(node, ast.Name) and self._check(TokenType.STRING):
+                # Chiamata senza parentesi con argomento stringa:
+                # if (getcollision "muro") { ... }
+                arg_tok = self._advance()
+                arg = ast.Literal(value=arg_tok.value, line=arg_tok.line, column=arg_tok.column)
+                node = ast.Call(callee=node, args=[arg], line=node.line, column=node.column)
             elif self._match(TokenType.DOT):
                 # permetti anche tipi come attributo: random.int, obj.float, ...
                 if self._check(TokenType.IDENT, TokenType.TYPE):

@@ -172,12 +172,7 @@ async function runCurrentFile(uri) {
   }
   notifyDaemon(file, "run");
 
-  const term =
-    vscode.window.terminals.find((t) => t.name === "C Python") ||
-    vscode.window.createTerminal({
-      name: "C Python",
-      shellPath: process.platform === "win32" ? "cmd.exe" : undefined,
-    });
+  const term = getOrCreateRunTerminal();
   term.show(true);
   // Path con spazi (cartella "c python"): passa sempre da cmd /c su Windows
   const safe = String(file).replace(/"/g, "");
@@ -186,6 +181,27 @@ async function runCurrentFile(uri) {
   } else {
     term.sendText(`cpy run "${safe}"`);
   }
+}
+
+/** Terminale "C Python": su Windows riusa solo se e' cmd.exe. */
+function getOrCreateRunTerminal() {
+  const name = "C Python";
+  if (process.platform !== "win32") {
+    return (
+      vscode.window.terminals.find((t) => t.name === name) ||
+      vscode.window.createTerminal({ name })
+    );
+  }
+  const isCmdShell = (t) => {
+    const opts = t.creationOptions;
+    const sp = opts && opts.shellPath;
+    if (!sp) return false;
+    const s = String(sp).toLowerCase().replace(/\//g, "\\");
+    return s === "cmd" || s === "cmd.exe" || s.endsWith("\\cmd.exe") || s.endsWith("\\cmd");
+  };
+  const existing = vscode.window.terminals.find((t) => t.name === name && isCmdShell(t));
+  if (existing) return existing;
+  return vscode.window.createTerminal({ name, shellPath: "cmd.exe" });
 }
 
 function activate(context) {

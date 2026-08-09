@@ -1,3 +1,4 @@
 """C Python — linguaggio ispirato a Python e C#."""
 
-__version__ = "0.1.0"
+# Fonte di verita' unica per la versione: cpy, demone e installer la leggono da qui.
+__version__ = "0.3.0"

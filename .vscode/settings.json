@@ -1,0 +1,11 @@
+{
+  "npm.autoDetect": "on",
+  "npm.exclude": [
+    "**/editors/**",
+    "**/vscode-c-python/**"
+  ],
+  "files.associations": {
+    "*.cpy": "cpython",
+    "*.cp": "cpython"
+  }
+}

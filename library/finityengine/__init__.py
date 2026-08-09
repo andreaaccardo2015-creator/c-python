@@ -27,6 +27,31 @@ def _parse_color(color: Any) -> tuple[int, int, int]:
     raise TypeError(f"Colore non valido: {color!r}")
 
 
+_image_cache: dict[str, Any] = {}
+
+
+def _load_image(path: str) -> Any:
+    """Carica un'immagine (con cache per path, cosi' lo stesso file non viene riletto)."""
+    if pygame is None:
+        raise RuntimeError("pygame non installato. Esegui: pip install pygame")
+    surf = _image_cache.get(path)
+    if surf is None:
+        surf = pygame.image.load(path)
+        try:
+            surf = surf.convert_alpha()
+        except pygame.error:
+            pass  # display non ancora inizializzato: la surface raw va bene
+        _image_cache[path] = surf
+    return surf
+
+
+def _slice_sheet(sheet: Any, count: int) -> list[Any]:
+    """Taglia uno sprite sheet orizzontale in `count` frame uguali."""
+    w = sheet.get_width() // count
+    h = sheet.get_height()
+    return [sheet.subsurface(pygame.Rect(i * w, 0, w, h)) for i in range(count)]
+
+
 class Position:
     def __init__(self, x: float = 0.0, y: float = 0.0):
         self.x = float(x)
@@ -61,6 +86,14 @@ class Actor:
         self._interpreter: Any = None
         # collisioni precompilate: sync automatico con width/height
         self._collider_enabled = True
+        # nomi (lowercase) degli actor attualmente sovrapposti — per getcollision
+        self._colliding: set[str] = set()
+        # sprite/animazioni
+        self._sprite_frames: list[Any] = []
+        self._animations: dict[str, dict[str, Any]] = {}
+        self._anim_name: str | None = None
+        self._anim_frame = 0.0
+        self._tweens: list[dict[str, Any]] = []
 
     def ActorColor(self, color: Any) -> None:
         self.color = _parse_color(color)
@@ -71,6 +104,83 @@ class Actor:
     def bind_handler(self, name: str, function: Any, interpreter: Any) -> None:
         self._handlers[name] = function
         self._interpreter = interpreter
+
+    # ---- sprite e animazioni ----
+
+    def sprite(self, path: Any) -> None:
+        """player.sprite("hero.png") — immagine al posto del rettangolo."""
+        self._sprite_frames = [_load_image(str(path))]
+        self._anim_name = None
+
+    def animation(self, name: Any, path: Any, frames: Any, fps: Any = 12) -> None:
+        """player.animation("run", "run.png", 6, 12) — sprite sheet orizzontale."""
+        count = int(frames)
+        if count < 1:
+            raise ValueError("animation: il numero di frame deve essere >= 1")
+        sheet = _load_image(str(path))
+        self._animations[str(name).lower()] = {
+            "frames": _slice_sheet(sheet, count),
+            "fps": float(fps),
+        }
+
+    def play(self, name: Any) -> None:
+        """player.play("run") — avvia un'animazione registrata."""
+        key = str(name).lower()
+        if key not in self._animations:
+            raise ValueError(
+                f"Animazione '{name}' non registrata: usa prima actor.animation(...)"
+            )
+        if self._anim_name != key:
+            self._anim_name = key
+            self._anim_frame = 0.0
+
+    def stop(self) -> None:
+        """player.stop() — ferma l'animazione corrente."""
+        self._anim_name = None
+        self._anim_frame = 0.0
+
+    def animate(self, prop: Any, start: Any, end: Any, duration: Any) -> None:
+        """player.animate("x", 100, 400, 2) — interpola una proprieta' in N secondi."""
+        key = str(prop).lower()
+        if key not in ("x", "y", "width", "height"):
+            raise ValueError("animate supporta: x, y, width, height")
+        self._tweens = [t for t in self._tweens if t["prop"] != key]
+        self._tweens.append(
+            {
+                "prop": key,
+                "start": float(start),
+                "end": float(end),
+                "duration": max(float(duration), 1e-6),
+                "elapsed": 0.0,
+            }
+        )
+
+    def _advance_animations(self, dt: float) -> None:
+        if self._anim_name:
+            self._anim_frame += self._animations[self._anim_name]["fps"] * dt
+        for t in self._tweens:
+            t["elapsed"] = min(t["elapsed"] + dt, t["duration"])
+            k = t["elapsed"] / t["duration"]
+            self._set_prop(t["prop"], t["start"] + (t["end"] - t["start"]) * k)
+        self._tweens = [t for t in self._tweens if t["elapsed"] < t["duration"]]
+
+    def _set_prop(self, prop: str, value: float) -> None:
+        if prop == "x":
+            self.transform.position.x = value
+        elif prop == "y":
+            self.transform.position.y = value
+        elif prop == "width":
+            self.width = value
+        elif prop == "height":
+            self.height = value
+
+    def _current_frame(self) -> Any:
+        if self._anim_name:
+            frames = self._animations[self._anim_name]["frames"]
+            return frames[int(self._anim_frame) % len(frames)]
+        if self._sprite_frames:
+            return self._sprite_frames[0]
+        return None
 
 
 class _Input:
@@ -111,6 +221,8 @@ class _Time:
     def __init__(self):
         self.deltaTime = 0.0
         self.time = 0.0
+        # passo dell'OnFixedUpdate (secondi): costante, indipendente dagli FPS
+        self.fixedDeltaTime = 1.0 / 60.0
 
 
 class Engine:
@@ -126,6 +238,11 @@ class Engine:
         self.Input = _Input(self)
         self.Time = _Time()
         self.background = (24, 28, 36)
+        # fixed timestep
+        self._accumulator = 0.0
+        self.maxFixedSteps = 5
+        # actor il cui handler e' in esecuzione (per getcollision)
+        self._current_actor: Actor | None = None
 
     def Init(
         self,
@@ -177,23 +294,32 @@ class Engine:
                     self._keys_down.add(pygame.key.name(event.key))
 
             for actor in list(self.actors):
-                if not actor.active:
-                    continue
-                if not actor._started:
+                if actor.active and not actor._started:
                     actor._started = True
                     self._call_handler(actor, "OnStart", [])
-                self._call_handler(actor, "OnUpdate", [dt])
 
-            # collisioni precompilate (AABB da width/height)
-            for i, a in enumerate(self.actors):
-                if not a.active or not a._collider_enabled:
-                    continue
-                for b in self.actors[i + 1 :]:
-                    if not b.active or not b._collider_enabled:
-                        continue
-                    if self._overlaps(a, b):
-                        self._call_handler(a, "OnCollision", [b])
-                        self._call_handler(b, "OnCollision", [a])
+            # Passi fissi: OnFixedUpdate a frequenza costante (fisica),
+            # indipendente dagli FPS. Prima del variabile, come in Unity.
+            fixed_dt = self.Time.fixedDeltaTime
+            for _ in range(self._advance_fixed(dt)):
+                self._refresh_collisions()
+                for actor in list(self.actors):
+                    if actor.active:
+                        self._call_handler(actor, "OnFixedUpdate", [fixed_dt])
+
+            self._refresh_collisions()
+            for actor in list(self.actors):
+                if actor.active:
+                    self._call_handler(actor, "OnUpdate", [dt])
+
+            # collisioni precompilate (AABB da width/height): eventi on collision
+            for a, b in self._refresh_collisions():
+                self._call_handler(a, "OnCollision", [b])
+                self._call_handler(b, "OnCollision", [a])
+
+            for actor in self.actors:
+                if actor.active:
+                    actor._advance_animations(dt)
 
             self._screen.fill(self.background)
             for actor in self.actors:
@@ -202,6 +328,34 @@ class Engine:
             pygame.display.flip()
 
         pygame.quit()
+
+    def _advance_fixed(self, dt: float) -> int:
+        """Accumula dt e ritorna quanti passi fissi eseguire in questo frame."""
+        self._accumulator += dt
+        steps = 0
+        while self._accumulator >= self.Time.fixedDeltaTime and steps < self.maxFixedSteps:
+            self._accumulator -= self.Time.fixedDeltaTime
+            steps += 1
+        if steps >= self.maxFixedSteps:
+            self._accumulator = 0.0  # dopo un lag lungo non recuperare all'infinito
+        return steps
+
+    def _refresh_collisions(self) -> list[tuple[Actor, Actor]]:
+        """Ricalcola gli insiemi di collisione per actor; ritorna le coppie sovrapposte."""
+        for actor in self.actors:
+            actor._colliding.clear()
+        pairs: list[tuple[Actor, Actor]] = []
+        for i, a in enumerate(self.actors):
+            if not a.active or not a._collider_enabled:
+                continue
+            for b in self.actors[i + 1 :]:
+                if not b.active or not b._collider_enabled:
+                    continue
+                if self._overlaps(a, b):
+                    a._colliding.add(b.name.lower())
+                    b._colliding.add(a.name.lower())
+                    pairs.append((a, b))
+        return pairs
 
     def _overlaps(self, a: Actor, b: Actor) -> bool:
         ax, ay = a.transform.position.x, a.transform.position.y
@@ -220,14 +374,26 @@ class Engine:
         interp = actor._interpreter
         if fn is None or interp is None:
             return
-        if isinstance(fn, Function):
-            interp._call_function(fn, args, this=None)
-        elif callable(fn):
-            fn(*args)
+        prev = self._current_actor
+        self._current_actor = actor
+        try:
+            if isinstance(fn, Function):
+                interp._call_function(fn, args, this=None)
+            elif callable(fn):
+                fn(*args)
+        finally:
+            self._current_actor = prev
 
     def _draw_actor(self, actor: Actor) -> None:
         assert self._screen is not None and pygame is not None
         pos = actor.transform.position
+        frame = actor._current_frame()
+        if frame is not None:
+            size = (max(int(actor.width), 1), max(int(actor.height), 1))
+            if frame.get_size() != size:
+                frame = pygame.transform.scale(frame, size)
+            self._screen.blit(frame, (int(pos.x), int(pos.y)))
+            return
         rect = pygame.Rect(int(pos.x), int(pos.y), int(actor.width), int(actor.height))
         pygame.draw.rect(self._screen, actor.color, rect)
 
@@ -250,6 +416,19 @@ def create_actor(name: str, interpreter: "Interpreter") -> Actor:
     interpreter.env.define(name, actor)
     interpreter.current_actor = actor
     return actor
+
+
+def get_collision(name: Any = None) -> bool:
+    """Builtin getcollision: l'actor dello script corrente tocca 'name'?
+
+    Senza argomento ritorna True se tocca un actor qualsiasi.
+    """
+    actor = _engine._current_actor
+    if actor is None:
+        return False
+    if name is None:
+        return bool(actor._colliding)
+    return str(name).lower() in actor._colliding
 
 
 def create_cp_module(interpreter: "Interpreter"):

@@ -47,8 +47,12 @@ def run_daemon(show_tray: bool = False) -> None:
     """
     _hide_console()
     ensure_install_dirs()
+    try:
+        httpd = serve()
+    except OSError:
+        # Porta occupata: un demone e' gia' attivo, non ne serve un secondo.
+        return
     _write_pid()
-    httpd = serve()
 
     def serve_forever():
         httpd.serve_forever()
