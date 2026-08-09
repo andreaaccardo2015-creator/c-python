@@ -21,7 +21,7 @@ def _version() -> str:
 
         return str(v)
     except Exception:
-        return "0.3.0"
+        return "0.3.1"
 
 
 def _post(path: str, payload: dict, timeout: float = 120.0) -> dict:
