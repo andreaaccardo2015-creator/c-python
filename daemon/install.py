@@ -8,6 +8,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from cpython import __version__
+
 from .associate import notify_shell_change, register_file_association, register_startup, unregister_startup
 from .paths import app_executable, bundle_root, ensure_install_dirs, install_root, is_frozen
 from .tray import is_daemon_alive, start_daemon_detached
@@ -16,7 +18,16 @@ MARKER = "installed.flag"
 
 
 def is_installed() -> bool:
-    return (install_root() / MARKER).is_file()
+    """True solo se è installata esattamente la versione corrente.
+
+    I vecchi setup scrivevano semplicemente ``ok``: sono considerati obsoleti,
+    così un nuovo EXE aggiorna automaticamente runtime ed estensione editor.
+    """
+    marker = install_root() / MARKER
+    try:
+        return marker.read_text(encoding="utf-8").strip() == __version__
+    except OSError:
+        return False
 
 
 def do_install() -> int:
@@ -122,7 +133,7 @@ def do_install() -> int:
             shutil.rmtree(tools_dst, ignore_errors=True)
         shutil.copytree(tools_src, tools_dst, dirs_exist_ok=True)
 
-    (root / MARKER).write_text("ok", encoding="utf-8")
+    (root / MARKER).write_text(__version__, encoding="utf-8")
 
     if not is_daemon_alive():
         if is_frozen() and target_exe:
