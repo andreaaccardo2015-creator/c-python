@@ -1,6 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 """PyInstaller spec macOS → Cpython_interpreter.app"""
 
+import re
 import sys
 from pathlib import Path
 
@@ -8,8 +9,14 @@ ROOT = Path(SPECPATH).resolve().parent
 if not (ROOT / "installer" / "entry.py").is_file():
     ROOT = Path(SPECPATH).resolve()
 
+VERSION = re.search(
+    r'__version__\s*=\s*"([^"]+)"',
+    (ROOT / "cpython" / "__init__.py").read_text(encoding="utf-8"),
+).group(1)
+
 datas = [
     (str(ROOT / "logo.png"), "."),
+    (str(ROOT / "LICENSE"), "."),
     (str(ROOT / "cpython"), "cpython"),
     (str(ROOT / "daemon"), "daemon"),
     (str(ROOT / "cpy"), "cpy"),
@@ -79,7 +86,8 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    # Vedi la spec Windows: la compressione UPX fa scattare l'euristica antivirus.
+    upx=False,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=True,  # utile su macOS per aprire file
@@ -97,8 +105,9 @@ app = BUNDLE(
     info_plist={
         "CFBundleName": "C Python",
         "CFBundleDisplayName": "C Python Interpreter",
-        "CFBundleShortVersionString": "0.2.3",
-        "CFBundleVersion": "0.2.3",
+        "CFBundleShortVersionString": VERSION,
+        "CFBundleVersion": VERSION,
+        "NSHumanReadableCopyright": "Copyright (c) 2026 Andrea Accardo - Licenza MIT",
         "NSHighResolutionCapable": True,
         "LSMinimumSystemVersion": "11.0",
         "CFBundleDocumentTypes": [

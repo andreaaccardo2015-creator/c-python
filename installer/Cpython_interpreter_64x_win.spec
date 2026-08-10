@@ -1,15 +1,59 @@
 # -*- mode: python ; coding: utf-8 -*-
 """PyInstaller spec → Cpython_interpreter_64x_win.exe"""
 
+import re
 from pathlib import Path
 
 ROOT = Path(SPECPATH).resolve().parent
 if not (ROOT / "installer" / "entry.py").is_file():
     ROOT = Path(SPECPATH).resolve()  # se lo spec e' nella root
 
+VERSION = re.search(
+    r'__version__\s*=\s*"([^"]+)"',
+    (ROOT / "cpython" / "__init__.py").read_text(encoding="utf-8"),
+).group(1)
+_parts = ([int(n) for n in VERSION.split(".")] + [0, 0, 0, 0])[:4]
+
+# I metadati di versione rendono l'eseguibile identificabile: senza di essi
+# l'euristica degli antivirus tratta un binario PyInstaller come sospetto.
+VERSION_FILE = ROOT / "installer" / "_version_info.txt"
+VERSION_FILE.write_text(
+    f"""VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers={tuple(_parts)},
+    prodvers={tuple(_parts)},
+    mask=0x3f,
+    flags=0x0,
+    OS=0x40004,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0),
+  ),
+  kids=[
+    StringFileInfo([
+      StringTable('040904B0', [
+        StringStruct('CompanyName', 'Andrea Accardo'),
+        StringStruct('FileDescription', 'C Python - installer e runtime del linguaggio C Python'),
+        StringStruct('FileVersion', '{VERSION}'),
+        StringStruct('InternalName', 'Cpython_interpreter'),
+        StringStruct('LegalCopyright', 'Copyright (c) 2026 Andrea Accardo - Licenza MIT'),
+        StringStruct('OriginalFilename', 'CPython_Setup.exe'),
+        StringStruct('ProductName', 'C Python'),
+        StringStruct('ProductVersion', '{VERSION}'),
+        StringStruct('Comments', 'Sorgenti completi: https://github.com/andreaaccardo2015-creator/c-python'),
+      ])
+    ]),
+    VarFileInfo([VarStruct('Translation', [1033, 1200])])
+  ]
+)
+""",
+    encoding="utf-8",
+)
+
 datas = [
     (str(ROOT / "logo.ico"), "."),
     (str(ROOT / "logo.png"), "."),
+    (str(ROOT / "LICENSE"), "."),
     (str(ROOT / "cpython"), "cpython"),
     (str(ROOT / "daemon"), "daemon"),
     (str(ROOT / "cpy"), "cpy"),
@@ -70,7 +114,9 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    # UPX resta disattivato: la compressione del binario e' la firma euristica
+    # piu' segnalata dagli antivirus, perche' usata dai malware per offuscarsi.
+    upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,
@@ -79,5 +125,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    version=str(VERSION_FILE),
     icon=str(ROOT / "logo.ico") if (ROOT / "logo.ico").is_file() else None,
 )

@@ -3,6 +3,7 @@ build/
 dist/
 *.spec.bak
 logo.iconset/
+installer/_version_info.txt
 
 # Python
 __pycache__/

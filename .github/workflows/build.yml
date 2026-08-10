@@ -41,12 +41,24 @@ jobs:
         run: |
           Copy-Item -Force dist/Cpython_interpreter_64x_win.exe dist/CPython_Setup.exe
           Get-Item dist/CPython_Setup.exe | Format-List Name, Length
+          $info = (Get-Item dist/CPython_Setup.exe).VersionInfo
+          $info | Format-List CompanyName, ProductName, ProductVersion, LegalCopyright
+          if (-not $info.CompanyName) { throw "Metadati di versione mancanti nell'EXE" }
+
+      - name: SHA256
+        shell: pwsh
+        run: |
+          $h = (Get-FileHash dist/CPython_Setup.exe -Algorithm SHA256).Hash.ToLower()
+          "$h  CPython_Setup.exe" | Set-Content dist/CPython_Setup.exe.sha256 -Encoding ascii
+          Write-Host "SHA256: $h"
 
       - name: Upload Setup only
         uses: actions/upload-artifact@v4
         with:
           name: CPython_Setup
-          path: dist/CPython_Setup.exe
+          path: |
+            dist/CPython_Setup.exe
+            dist/CPython_Setup.exe.sha256
           if-no-files-found: error
 
   release:
@@ -63,11 +75,16 @@ jobs:
           path: out
 
       - name: Check
-        run: ls -la out && test -f out/CPython_Setup.exe
+        id: check
+        run: |
+          ls -la out && test -f out/CPython_Setup.exe
+          echo "sha256=$(sha256sum out/CPython_Setup.exe | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - uses: softprops/action-gh-release@v2
         with:
-          files: out/CPython_Setup.exe
+          files: |
+            out/CPython_Setup.exe
+            out/CPython_Setup.exe.sha256
           generate_release_notes: true
           body: |
             ## Windows
@@ -78,3 +95,17 @@ jobs:
             cpy version
             cpy run tuoFile.cpy
             ```
+
+            ## Verifica del file
+            SHA256 di `CPython_Setup.exe`:
+            ```
+            ${{ steps.check.outputs.sha256 }}
+            ```
+            Controllalo con `Get-FileHash .\CPython_Setup.exe -Algorithm SHA256`.
+
+            ## L'antivirus lo segnala?
+            È un falso positivo noto degli eseguibili PyInstaller non firmati.
+            Il programma è open source con licenza MIT e la build è pubblica.
+            Spiegazione completa, elenco delle modifiche al sistema e istruzioni
+            per sbloccarlo o segnalarlo al produttore:
+            [ANTIVIRUS.md](https://github.com/andreaaccardo2015-creator/c-python/blob/main/ANTIVIRUS.md)
