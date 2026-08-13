@@ -9,6 +9,9 @@ class Parser:
     def __init__(self, tokens: list[Token]):
         self.tokens = tokens
         self.pos = 0
+        # eventi gia' dichiarati per il soggetto corrente: un secondo
+        # "on start" sovrascriverebbe il primo in silenzio
+        self._seen_events: dict[str, int] = {}
 
     @classmethod
     def parse_source(cls, source: str) -> ast.Program:
@@ -231,6 +234,15 @@ class Parser:
                 event.line,
                 event.column,
             )
+        prima = self._seen_events.get(event_name)
+        if prima is not None:
+            raise ParseError(
+                f"'on {event_name}' e' gia' dichiarato alla riga {prima}: "
+                f"ogni script puo' averne uno solo, unisci i due blocchi",
+                event.line,
+                event.column,
+            )
+        self._seen_events[event_name] = event.line
         params: list[tuple[str, str]] = []
         if self._match(TokenType.LPAREN):
             if not self._check(TokenType.RPAREN):
@@ -305,6 +317,8 @@ class Parser:
 
     def _actor_decl(self) -> ast.ActorDecl:
         tok = self._advance()  # actor
+        # nuovo soggetto: i suoi eventi sono indipendenti da quelli precedenti
+        self._seen_events.clear()
         name = self._expect(TokenType.IDENT, "Atteso nome actor")
         self._match(TokenType.SEMICOLON)
         return ast.ActorDecl(name=str(name.value), line=tok.line, column=tok.column)
@@ -348,6 +362,21 @@ class Parser:
             value = self._expression()
             self._match(TokenType.SEMICOLON)
             return ast.Assign(target=left, value=value, line=left.line, column=left.column)
+        composto = self._match(
+            TokenType.PLUSEQ, TokenType.MINUSEQ, TokenType.STAREQ, TokenType.SLASHEQ
+        )
+        if composto is not None:
+            # y += 5 vale y = y + 5: nessun nodo nuovo da valutare
+            value = self._expression()
+            self._match(TokenType.SEMICOLON)
+            somma = ast.BinaryOp(
+                op=str(composto.value)[0],
+                left=left,
+                right=value,
+                line=composto.line,
+                column=composto.column,
+            )
+            return ast.Assign(target=left, value=somma, line=left.line, column=left.column)
         # non è assegnazione: riparti e parse espressione completa
         self.pos = start
         expr = self._expression()
@@ -418,9 +447,10 @@ class Parser:
                 args = self._arg_list()
                 self._expect(TokenType.RPAREN, "Atteso ')' dopo argomenti")
                 node = ast.Call(callee=node, args=args, line=node.line, column=node.column)
-            elif isinstance(node, ast.Name) and self._check(TokenType.STRING):
+            elif isinstance(node, (ast.Name, ast.Attribute)) and self._check(TokenType.STRING):
                 # Chiamata senza parentesi con argomento stringa:
                 # if (getcollision "muro") { ... }
+                # if (animation.time "2") { ... }
                 arg_tok = self._advance()
                 arg = ast.Literal(value=arg_tok.value, line=arg_tok.line, column=arg_tok.column)
                 node = ast.Call(callee=node, args=[arg], line=node.line, column=node.column)
@@ -439,14 +469,39 @@ class Parser:
                 break
         return node
 
+    _DELTA_OPS = (TokenType.PLUSEQ, TokenType.MINUSEQ, TokenType.EQ)
+
     def _arg_list(self) -> list[ast.Node]:
         args: list[ast.Node] = []
         if self._check(TokenType.RPAREN):
             return args
-        args.append(self._expression())
+        args.append(self._arg())
         while self._match(TokenType.COMMA):
-            args.append(self._expression())
+            args.append(self._arg())
         return args
+
+    def _arg(self) -> ast.Node:
+        """Argomento normale, oppure spostamento su un asse.
+
+        part("braccio", y += 5) passa "sull'asse y, piu' 5" invece di un numero
+        secco, cosi' chi riceve la chiamata sa su quale asse agire.
+        """
+        if (
+            self._check(TokenType.IDENT)
+            and self.pos + 1 < len(self.tokens)
+            and self.tokens[self.pos + 1].type in self._DELTA_OPS
+        ):
+            axis = self._advance()
+            op = self._advance()
+            value = self._expression()
+            return ast.AxisDelta(
+                axis=str(axis.value),
+                op=str(op.value),
+                value=value,
+                line=axis.line,
+                column=axis.column,
+            )
+        return self._expression()
 
     def _position_literal(self) -> ast.PositionLiteral:
         tok = self._advance()  # x

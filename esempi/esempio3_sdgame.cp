@@ -1,6 +1,7 @@
-// Esempio sdgame — gioco 2D senza FinityEngine (stile pygame)
 import sdgame
 import math
+
+// Esempio sdgame — gioco 2D senza FinityEngine (stile pygame)
 
 sdgame.init(640, 480, "sdgame demo")
 

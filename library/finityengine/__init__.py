@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
@@ -30,10 +31,33 @@ def _parse_color(color: Any) -> tuple[int, int, int]:
 _image_cache: dict[str, Any] = {}
 
 
+def _resolve_asset(path: str) -> str:
+    """Percorso di un'immagine, cercata accanto allo script prima che nella CWD.
+
+    Chi scrive un .cp ragiona in percorsi relativi al proprio file, non alla
+    cartella da cui viene lanciato ``cpy run``.
+    """
+    p = Path(path)
+    if p.is_absolute():
+        return str(p)
+    tried = []
+    base = _engine.script_dir
+    if base is not None:
+        candidate = base / p
+        if candidate.is_file():
+            return str(candidate)
+        tried.append(str(candidate))
+    if p.is_file():
+        return str(p)
+    tried.append(str(p.resolve()))
+    raise FileNotFoundError("Immagine non trovata. Percorsi provati: " + ", ".join(tried))
+
+
 def _load_image(path: str) -> Any:
     """Carica un'immagine (con cache per path, cosi' lo stesso file non viene riletto)."""
     if pygame is None:
         raise RuntimeError("pygame non installato. Esegui: pip install pygame")
+    path = _resolve_asset(path)
     surf = _image_cache.get(path)
     if surf is None:
         surf = pygame.image.load(path)
@@ -94,6 +118,9 @@ class Actor:
         self._anim_name: str | None = None
         self._anim_frame = 0.0
         self._tweens: list[dict[str, Any]] = []
+        # parti del rig spostate dallo script: nome parte -> asse -> offset
+        self._parts: dict[str, dict[str, float]] = {}
+        self._part_tweens: list[dict[str, Any]] = []
 
     def ActorColor(self, color: Any) -> None:
         self.color = _parse_color(color)
@@ -163,6 +190,51 @@ class Actor:
             k = t["elapsed"] / t["duration"]
             self._set_prop(t["prop"], t["start"] + (t["end"] - t["start"]) * k)
         self._tweens = [t for t in self._tweens if t["elapsed"] < t["duration"]]
+        for t in self._part_tweens:
+            t["elapsed"] = min(t["elapsed"] + dt, t["duration"])
+            k = t["elapsed"] / t["duration"]
+            self._parts.setdefault(t["part"], {})[t["axis"]] = (
+                t["start"] + (t["end"] - t["start"]) * k
+            )
+        self._part_tweens = [t for t in self._part_tweens if t["elapsed"] < t["duration"]]
+
+    # ---- parti del rig ----
+
+    def move_part(self, name: Any, deltas: list, duration: float = 0.0) -> None:
+        """Sposta una parte del modello, subito o gradualmente in `duration` secondi."""
+        _validate_rig_part(self, name)
+        parte = str(name).lower()
+        offsets = self._parts.setdefault(parte, {})
+        for delta in deltas:
+            axis = str(delta.axis).lower()
+            partenza = offsets.get(axis, 0.0)
+            arrivo = delta.apply(partenza)
+            if duration <= 0:
+                offsets[axis] = arrivo
+                continue
+            # un solo movimento per volta sullo stesso asse della stessa parte
+            self._part_tweens = [
+                t
+                for t in self._part_tweens
+                if not (t["part"] == parte and t["axis"] == axis)
+            ]
+            self._part_tweens.append(
+                {
+                    "part": parte,
+                    "axis": axis,
+                    "start": partenza,
+                    "end": arrivo,
+                    "duration": max(float(duration), 1e-6),
+                    "elapsed": 0.0,
+                }
+            )
+
+    def part_offset(self, name: Any, axis: Any = None) -> Any:
+        """Spostamento accumulato di una parte: tutti gli assi, o uno solo."""
+        offsets = self._parts.get(str(name).lower(), {})
+        if axis is None:
+            return dict(offsets)
+        return offsets.get(str(axis).lower(), 0.0)
 
     def _set_prop(self, prop: str, value: float) -> None:
         if prop == "x":
@@ -174,6 +246,17 @@ class Actor:
         elif prop == "height":
             self.height = value
 
+    def anim_elapsed(self) -> float:
+        """Secondi dall'inizio dell'animazione in corso (0 se non ne gira nessuna).
+
+        Non serve un contatore in piu': _anim_frame cresce di fps*dt, quindi
+        dividerlo per gli fps restituisce esattamente il tempo trascorso.
+        """
+        if not self._anim_name:
+            return 0.0
+        fps = self._animations[self._anim_name]["fps"]
+        return self._anim_frame / fps if fps else 0.0
+
     def _current_frame(self) -> Any:
         if self._anim_name:
             frames = self._animations[self._anim_name]["frames"]
@@ -181,6 +264,36 @@ class Actor:
         if self._sprite_frames:
             return self._sprite_frames[0]
         return None
+
+
+class RigTransform:
+    """Il transform di un rigidbody: agisce sulle parti nominate del modello."""
+
+    def __init__(self, actor: Actor):
+        self._actor = actor
+
+    def part(self, name: Any, *args: Any) -> None:
+        """part("braccio", y += 5) — o con la durata: part("braccio", y += 5, 0.5)"""
+        from cpython.values import AxisDelta
+
+        deltas = [a for a in args if isinstance(a, AxisDelta)]
+        if not deltas:
+            raise ValueError(
+                'part: serve almeno uno spostamento su un asse, es. part("braccio", y += 5)'
+            )
+        resto = [a for a in args if not isinstance(a, AxisDelta)]
+        duration = float(resto[0]) if resto else 0.0
+        self._actor.move_part(name, deltas, duration)
+
+
+class RigidBody:
+    """Quello che restituisce rigidbody.call("RB")."""
+
+    def __init__(self, actor: Actor, alias: str):
+        self.alias = alias
+        self._actor = actor
+        self.transform = RigTransform(actor)
+        self.trasform = self.transform  # alias (typo accettato)
 
 
 class _Input:
@@ -243,6 +356,13 @@ class Engine:
         self.maxFixedSteps = 5
         # actor il cui handler e' in esecuzione (per getcollision)
         self._current_actor: Actor | None = None
+        # cartella dello script .cp: base per i percorsi delle immagini
+        self.script_dir: Path | None = None
+        # ultimo actor dichiarato: rigidbody.call() sta fuori dagli handler
+        self._declared_actor: Actor | None = None
+        # esito dell'handshake ready/bindings con FinityEngine (None = non
+        # ancora avvenuto, o non richiesto: nessuna convalida in quel caso)
+        self.bindings: Any = None
 
     def Init(
         self,
@@ -410,8 +530,16 @@ def Run() -> None:
     _engine.Run()
 
 
+def _track_script_dir(interpreter: "Interpreter") -> None:
+    filename = getattr(interpreter, "filename", None)
+    if filename:
+        _engine.script_dir = Path(filename).resolve().parent
+
+
 def create_actor(name: str, interpreter: "Interpreter") -> Actor:
+    _track_script_dir(interpreter)
     actor = Actor(name)
+    _engine._declared_actor = actor
     _engine.add_actor(actor)
     interpreter.env.define(name, actor)
     interpreter.current_actor = actor
@@ -431,8 +559,102 @@ def get_collision(name: Any = None) -> bool:
     return str(name).lower() in actor._colliding
 
 
+def animation_start(name: Any) -> None:
+    """animation.start("camminata") — avvia un'animazione del modello corrente."""
+    actor = _engine._current_actor
+    if actor is not None:
+        actor.play(name)
+
+
+def animation_stop(name: Any = None) -> None:
+    """animation.stop("camminata") — ferma quell'animazione, se e' quella in corso."""
+    actor = _engine._current_actor
+    if actor is None:
+        return
+    if name is None or str(name).lower() == actor._anim_name:
+        actor.stop()
+
+
+def animation_time(seconds: Any) -> bool:
+    """if (animation.time "2") — l'animazione in corso ha raggiunto i 2 secondi?"""
+    actor = _engine._current_actor
+    if actor is None or not actor._anim_name:
+        return False
+    return actor.anim_elapsed() >= float(seconds)
+
+
+def set_bindings(bindings: Any) -> None:
+    """Salva l'esito dell'handshake ready/bindings (o None se non c'e' stato)."""
+    _engine.bindings = bindings
+
+
+def _binding_error(message: str) -> Any:
+    from cpython.errors import RuntimeError_
+
+    return RuntimeError_(message)
+
+
+def _binding_for(actor: Actor) -> Any:
+    """La entita' della scena per questo actor, o solleva un errore chiaro.
+
+    None se non abbiamo mai fatto l'handshake (uso standalone): in quel caso
+    la convalida e' semplicemente saltata, come sempre.
+    """
+    bindings = _engine.bindings
+    if bindings is None:
+        return None
+    binding = bindings.get(actor.name)
+    if binding is not None:
+        return binding
+    reason = bindings.reason_for_missing(actor.name)
+    if reason == "ambiguous":
+        raise _binding_error(
+            f"'{actor.name}' e' ambiguo nella scena: piu' oggetti hanno questo nome"
+        )
+    raise _binding_error(f"Il modello '{actor.name}' non e' presente nella scena")
+
+
+def _validate_component(actor: Actor, *prefixes: str) -> None:
+    binding = _binding_for(actor)
+    if binding is None:
+        return
+    if not binding.has_component(*prefixes):
+        opzioni = "' o '".join(prefixes)
+        raise _binding_error(f"Il modello '{actor.name}' non ha un componente '{opzioni}'")
+
+
+def _validate_rig_part(actor: Actor, name: Any) -> None:
+    binding = _binding_for(actor)
+    if binding is None:
+        return
+    if not binding.has_rig_part(name):
+        raise _binding_error(
+            f"Il modello '{actor.name}' non ha una parte del rig chiamata '{name}'"
+        )
+
+
+def rigidbody_call(alias: Any = "rigidbody") -> Any:
+    """rigidbody.call("RB") — collega un rigidbody e lo espone come player.RB.
+
+    Sta di solito fuori dagli handler, quindi ricade sull'ultimo actor
+    dichiarato quando non c'e' nessun handler in esecuzione.
+    """
+    actor = _engine._current_actor or _engine._declared_actor
+    if actor is None:
+        raise RuntimeError(
+            'rigidbody.call: nessun modello a cui collegarlo (manca "actor nome"?)'
+        )
+    _validate_component(actor, "rigidbody")
+    nome = str(alias)
+    rb = RigidBody(actor, nome)
+    setattr(actor, nome, rb)
+    return rb
+
+
 def create_cp_module(interpreter: "Interpreter"):
     from cpython.values import NativeFunction, NativeModule
+
+    _track_script_dir(interpreter)
 
     def actor_fn(name: str):
         return create_actor(str(name), interpreter)

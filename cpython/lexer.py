@@ -47,6 +47,10 @@ class TokenType(Enum):
     PERCENT = auto()
     EQ = auto()
     EQEQ = auto()
+    PLUSEQ = auto()  # +=
+    MINUSEQ = auto()  # -=
+    STAREQ = auto()  # *=
+    SLASHEQ = auto()  # /=
     NE = auto()
     LT = auto()
     GT = auto()
@@ -272,6 +276,16 @@ class Lexer:
             self._advance()
             self._advance()
             return Token(TokenType.ARROW, "->", line, col)
+        composti = {
+            "+=": TokenType.PLUSEQ,
+            "-=": TokenType.MINUSEQ,
+            "*=": TokenType.STAREQ,
+            "/=": TokenType.SLASHEQ,
+        }
+        if two in composti:
+            self._advance()
+            self._advance()
+            return Token(composti[two], two, line, col)
 
         # Single-char
         single = {

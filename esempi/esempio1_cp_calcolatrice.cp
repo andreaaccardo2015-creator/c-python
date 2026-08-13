@@ -1,5 +1,6 @@
-// Calcolatrice in C Python
 import time
+
+// Calcolatrice in C Python
 
 print.log("ciao questa è la tua calcolatrice in cpython")
 

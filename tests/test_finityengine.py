@@ -17,6 +17,7 @@ import finityengine
 from cpython import ast_nodes as ast
 from cpython.interpreter import Interpreter
 from cpython.lexer import Lexer
+from cpython.errors import ParseError, RuntimeError_
 from cpython.parser import Parser
 
 
@@ -41,6 +42,22 @@ class TestParserNewConstructs(unittest.TestCase):
         self.assertEqual(len(cond.args), 1)
         self.assertEqual(cond.args[0].value, "muro")
 
+    def test_animation_time_without_parens_in_if(self):
+        prog = _parse('if (animation.time "2") {\n    x = 1\n}\n')
+        cond = prog.body[0].condition
+        self.assertIsInstance(cond, ast.Call)
+        self.assertIsInstance(cond.callee, ast.Attribute)
+        self.assertEqual(cond.callee.attr, "time")
+        self.assertEqual(cond.args[0].value, "2")
+
+    def test_module_call_with_parens_not_broken(self):
+        """print.log("x") resta una chiamata normale, non una giustapposizione."""
+        prog = _parse('print.log("ciao")\n')
+        call = prog.body[0].expr
+        self.assertIsInstance(call, ast.Call)
+        self.assertEqual(len(call.args), 1)
+        self.assertEqual(call.args[0].value, "ciao")
+
     def test_position_literal_not_broken(self):
         """x 380; y 280; deve restare una PositionLiteral, non una chiamata."""
         prog = _parse("player.transform.position == x 380; y 280;\n")
@@ -55,6 +72,221 @@ class TestParserNewConstructs(unittest.TestCase):
         with patch("builtins.input", return_value="andy"), patch("sys.stdout", buf):
             Interpreter().run_source(src)
         self.assertIn("HI-andy", buf.getvalue())
+
+
+class TestCompoundAssignment(unittest.TestCase):
+    """+= -= *= /= non esistevano: y += 5 dava un errore di sintassi."""
+
+    def test_plus_equal_is_desugared(self):
+        prog = _parse("int y = 1\ny += 5\n")
+        assegna = prog.body[1]
+        self.assertIsInstance(assegna, ast.Assign)
+        self.assertIsInstance(assegna.value, ast.BinaryOp)
+        self.assertEqual(assegna.value.op, "+")
+
+    def test_all_four_operators_run(self):
+        buf = io.StringIO()
+        with patch("sys.stdout", buf):
+            Interpreter().run_source(
+                "int y = 10\ny += 5\ny *= 2\ny -= 4\ny /= 2\nprint.log(y)\n"
+            )
+        self.assertIn("13", buf.getvalue())
+
+
+class TestAxisDeltaArguments(unittest.TestCase):
+    """part("braccio", y += 5): asse e spostamento come singolo argomento."""
+
+    def test_delta_argument_is_parsed(self):
+        prog = _parse('player.rb.trasform.part("braccio", y += 5)\n')
+        call = prog.body[0].expr
+        self.assertEqual(len(call.args), 2)
+        delta = call.args[1]
+        self.assertIsInstance(delta, ast.AxisDelta)
+        self.assertEqual(delta.axis, "y")
+        self.assertEqual(delta.op, "+=")
+
+    def test_absolute_and_negative_deltas(self):
+        prog = _parse('p.part("gamba", x -= 2, z = 10)\n')
+        args = prog.body[0].expr.args
+        self.assertEqual([(a.axis, a.op) for a in args[1:]], [("x", "-="), ("z", "=")])
+
+    def test_normal_arguments_still_work(self):
+        prog = _parse('p.part("gamba", 5, 2 + 3)\n')
+        args = prog.body[0].expr.args
+        self.assertEqual(len(args), 3)
+        self.assertFalse(any(isinstance(a, ast.AxisDelta) for a in args))
+
+    def test_value_applies_relative_and_absolute(self):
+        from cpython.values import AxisDelta
+
+        self.assertEqual(AxisDelta("y", "+=", 5).apply(10), 15)
+        self.assertEqual(AxisDelta("y", "-=", 5).apply(10), 5)
+        self.assertEqual(AxisDelta("y", "=", 5).apply(10), 5)
+
+
+class TestRigParts(unittest.TestCase):
+    """rigidbody.call("RB") e lo spostamento delle parti del rig."""
+
+    def setUp(self):
+        finityengine._engine.actors.clear()
+        self.addCleanup(finityengine._engine.actors.clear)
+
+    def _esegui(self, corpo: str):
+        interp = Interpreter()
+        interp.run_source(f'actor player\nrigidbody.call("RB")\non start {{\n{corpo}\n}}\n')
+        player = finityengine._engine.actors[-1]
+        finityengine._engine._call_handler(player, "OnStart", [])
+        return player
+
+    def test_part_moves_immediately(self):
+        player = self._esegui('    player.rb.trasform.part("braccio", y += 5)')
+        self.assertEqual(player.part_offset("braccio"), {"y": 5.0})
+
+    def test_alias_and_typo_are_case_insensitive(self):
+        player = self._esegui('    player.RB.transform.part("braccio", y += 1)')
+        self.assertEqual(player.part_offset("braccio", "y"), 1.0)
+
+    def test_repeated_calls_accumulate(self):
+        player = self._esegui('    player.rb.trasform.part("braccio", y += 5)')
+        finityengine._engine._call_handler(player, "OnStart", [])
+        self.assertEqual(player.part_offset("braccio", "y"), 10.0)
+
+    def test_duration_interpolates_over_time(self):
+        player = self._esegui('    player.rb.trasform.part("testa", y += 90, 0.5)')
+        self.assertEqual(player.part_offset("testa"), {})
+        player._advance_animations(0.25)
+        self.assertAlmostEqual(player.part_offset("testa", "y"), 45.0)
+        player._advance_animations(0.25)
+        self.assertAlmostEqual(player.part_offset("testa", "y"), 90.0)
+        self.assertEqual(player._part_tweens, [])
+
+    def test_part_without_delta_is_rejected(self):
+        actor = finityengine.Actor("a")
+        with self.assertRaises(ValueError):
+            finityengine.RigTransform(actor).part("braccio", 5)
+
+    def test_unknown_part_reads_as_zero(self):
+        self.assertEqual(finityengine.Actor("a").part_offset("mano", "y"), 0.0)
+
+
+class TestComponentValidation(unittest.TestCase):
+    """rigidbody.call e part() convalidati contro i bindings di FinityEngine.
+
+    Senza handshake (bindings None, il caso di sempre) niente cambia: e' per
+    questo che i test scritti prima di questa funzionalita' restano verdi.
+    """
+
+    def setUp(self):
+        finityengine._engine.actors.clear()
+        self.addCleanup(finityengine._engine.actors.clear)
+        self.addCleanup(setattr, finityengine._engine, "bindings", None)
+
+    def _bindings_con(self, components=(), rig_parts=(), nome="player"):
+        from cpython.ipc import Bindings, EntityBinding
+
+        return Bindings(
+            entities={
+                nome.lower(): EntityBinding(
+                    components={c.lower() for c in components},
+                    rig_parts={p.lower() for p in rig_parts},
+                )
+            }
+        )
+
+    def _esegui(self, corpo_globale: str, corpo_on_start: str | None = None):
+        src = f'actor player\n{corpo_globale}\n'
+        if corpo_on_start is not None:
+            src += f'on start {{\n{corpo_on_start}\n}}\n'
+        Interpreter().run_source(src)
+        player = finityengine._engine.actors[-1]
+        if corpo_on_start is not None:
+            finityengine._engine._call_handler(player, "OnStart", [])
+        return player
+
+    def test_rigidbody_call_rejected_without_component(self):
+        finityengine._engine.bindings = self._bindings_con(components=["transform"])
+        with self.assertRaises(RuntimeError_) as ctx:
+            self._esegui('rigidbody.call("RB")')
+        self.assertIn("rigidbody", str(ctx.exception))
+
+    def test_rigidbody_call_accepted_with_component(self):
+        finityengine._engine.bindings = self._bindings_con(
+            components=["transform", "rigidbody2d"]
+        )
+        self._esegui('rigidbody.call("RB")')  # non deve lanciare
+
+    def test_missing_rig_part_is_rejected(self):
+        finityengine._engine.bindings = self._bindings_con(
+            components=["rigidbody"], rig_parts=["gamba"]
+        )
+        with self.assertRaises(RuntimeError_) as ctx:
+            self._esegui(
+                'rigidbody.call("RB")',
+                'player.rb.trasform.part("braccio", y += 5)',
+            )
+        self.assertIn("braccio", str(ctx.exception))
+
+    def test_known_rig_part_is_accepted(self):
+        finityengine._engine.bindings = self._bindings_con(
+            components=["rigidbody"], rig_parts=["braccio"]
+        )
+        player = self._esegui(
+            'rigidbody.call("RB")',
+            'player.rb.trasform.part("braccio", y += 5)',
+        )
+        self.assertEqual(player.part_offset("braccio", "y"), 5.0)
+
+    def test_actor_not_in_scene_reports_clear_error(self):
+        from cpython.ipc import Bindings
+
+        finityengine._engine.bindings = Bindings(missing={"player": "not-found"})
+        with self.assertRaises(RuntimeError_) as ctx:
+            self._esegui('rigidbody.call("RB")')
+        self.assertIn("non e' presente nella scena", str(ctx.exception))
+
+    def test_ambiguous_actor_reports_clear_error(self):
+        from cpython.ipc import Bindings
+
+        finityengine._engine.bindings = Bindings(missing={"player": "ambiguous"})
+        with self.assertRaises(RuntimeError_) as ctx:
+            self._esegui('rigidbody.call("RB")')
+        self.assertIn("ambiguo", str(ctx.exception))
+
+    def test_error_gets_line_and_column_from_the_call_site(self):
+        # actor player  -> riga 1
+        # (riga vuota)  -> riga 2
+        # rigidbody.call(...) -> riga 3
+        finityengine._engine.bindings = self._bindings_con(components=["transform"])
+        with self.assertRaises(RuntimeError_) as ctx:
+            self._esegui('\nrigidbody.call("RB")')
+        self.assertEqual(ctx.exception.line, 3)
+
+
+class TestDuplicateHandlers(unittest.TestCase):
+    """Uno stesso evento due volte sovrascriveva il primo senza dire niente."""
+
+    def test_second_on_start_is_rejected(self):
+        with self.assertRaises(ParseError) as ctx:
+            _parse("on start {\n    x = 1\n}\non start {\n    y = 2\n}\n")
+        messaggio = str(ctx.exception)
+        self.assertIn("on start", messaggio)
+        self.assertIn("riga 1", messaggio)
+
+    def test_second_on_update_is_rejected(self):
+        with self.assertRaises(ParseError):
+            _parse("on update {\n    x = 1\n}\non update {\n    y = 2\n}\n")
+
+    def test_different_events_are_fine(self):
+        prog = _parse("on start {\n    x = 1\n}\non update {\n    y = 2\n}\n")
+        self.assertEqual([n.name for n in prog.body], ["OnStart", "OnUpdate"])
+
+    def test_new_actor_starts_a_new_scope(self):
+        """Nel runtime standalone ogni actor porta i propri handler."""
+        prog = _parse(
+            "actor muro\non start {\n    x = 1\n}\n"
+            "actor player\non start {\n    y = 2\n}\n"
+        )
+        self.assertEqual(len([n for n in prog.body if isinstance(n, ast.FunDef)]), 2)
 
 
 def ast_walk(node):
@@ -180,6 +412,101 @@ class TestAnimations(unittest.TestCase):
         frames = finityengine._slice_sheet(sheet, 6)
         self.assertEqual(len(frames), 6)
         self.assertEqual(frames[0].get_size(), (10, 10))
+
+    def test_play_does_not_restart_same_animation(self):
+        """play() nell'on update non deve inchiodare il frame a 0 ogni giro."""
+        import pygame
+
+        actor = finityengine.Actor("a")
+        actor._animations["run"] = {"frames": [pygame.Surface((4, 4))] * 3, "fps": 10.0}
+        actor.play("run")
+        actor._advance_animations(0.15)
+        actor.play("run")
+        self.assertAlmostEqual(actor._anim_frame, 1.5)
+
+
+class TestAnimationModule(unittest.TestCase):
+    """animation.start / animation.stop / animation.time "N" """
+
+    def setUp(self):
+        import pygame
+
+        self.actor = finityengine.Actor("player")
+        self.actor._animations["gira"] = {
+            "frames": [pygame.Surface((4, 4))] * 3,
+            "fps": 10.0,
+        }
+        finityengine._engine._current_actor = self.actor
+        self.addCleanup(setattr, finityengine._engine, "_current_actor", None)
+
+    def test_start_plays_animation(self):
+        finityengine.animation_start("gira")
+        self.assertEqual(self.actor._anim_name, "gira")
+
+    def test_elapsed_seconds_follow_dt(self):
+        finityengine.animation_start("gira")
+        self.actor._advance_animations(0.5)
+        self.assertAlmostEqual(self.actor.anim_elapsed(), 0.5)
+
+    def test_time_is_true_only_after_the_threshold(self):
+        finityengine.animation_start("gira")
+        self.actor._advance_animations(1.9)
+        self.assertFalse(finityengine.animation_time("2"))
+        self.actor._advance_animations(0.2)
+        self.assertTrue(finityengine.animation_time("2"))
+
+    def test_stop_named_animation(self):
+        finityengine.animation_start("gira")
+        self.actor._advance_animations(2.1)
+        finityengine.animation_stop("gira")
+        self.assertIsNone(self.actor._anim_name)
+        self.assertEqual(self.actor.anim_elapsed(), 0.0)
+        self.assertFalse(finityengine.animation_time("2"))
+
+    def test_stop_ignores_another_animation(self):
+        finityengine.animation_start("gira")
+        finityengine.animation_stop("camminata")
+        self.assertEqual(self.actor._anim_name, "gira")
+
+    def test_time_is_false_without_animation(self):
+        self.assertFalse(finityengine.animation_time("0"))
+
+    def test_module_is_available_to_scripts(self):
+        interp = Interpreter()
+        mod = interp.globals.get("animation")
+        self.assertEqual(sorted(mod.attrs), ["start", "stop", "time"])
+
+
+class TestAssetPaths(unittest.TestCase):
+    """I path delle immagini seguono il file .cp, non la working directory."""
+
+    def setUp(self):
+        self._prev = finityengine._engine.script_dir
+        self.addCleanup(setattr, finityengine._engine, "script_dir", self._prev)
+
+    def test_relative_path_resolved_next_to_script(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            script_dir = Path(tmp)
+            (script_dir / "assets").mkdir()
+            asset = script_dir / "assets" / "hero.png"
+            asset.write_bytes(b"")
+            finityengine._engine.script_dir = script_dir
+            self.assertEqual(
+                Path(finityengine._resolve_asset("assets/hero.png")), asset
+            )
+
+    def test_absolute_path_is_kept(self):
+        finityengine._engine.script_dir = Path("/qualsiasi")
+        absolute = Path.cwd() / "logo.png"
+        self.assertEqual(finityengine._resolve_asset(str(absolute)), str(absolute))
+
+    def test_missing_asset_lists_attempted_paths(self):
+        finityengine._engine.script_dir = Path("/base")
+        with self.assertRaises(FileNotFoundError) as ctx:
+            finityengine._resolve_asset("manca.png")
+        self.assertIn("manca.png", str(ctx.exception))
 
 
 class TestActorLifecycleBinding(unittest.TestCase):

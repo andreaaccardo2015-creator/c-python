@@ -1,11 +1,9 @@
-// Mini gioco FinityEngine — lo script è allocato all'Actor "player"
-import screen
 import finityengine
 import time
 import random
 
-screen.create(800, 600, "C python + finity engine")
-// oppure: screen.create(fullscreen, "C python + finity engine")
+// Mini gioco FinityEngine — lo script è allocato all'Actor "player".
+// Nessuna finestra da aprire a mano: la crea il motore quando parte.
 
 actor player
 

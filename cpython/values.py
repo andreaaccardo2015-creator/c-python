@@ -45,6 +45,33 @@ def _ci_dict_has(d: dict, name: str) -> bool:
 
 
 
+@dataclass
+class AxisDelta:
+    """Valore di ``y += 5`` passato come argomento: asse, operatore, quantita'.
+
+    Serve a chi riceve la chiamata (es. il rig di un modello) per sapere su
+    quale asse muoversi e se il numero e' uno spostamento o una posizione.
+    """
+
+    axis: str
+    op: str
+    value: float
+
+    @property
+    def is_absolute(self) -> bool:
+        return self.op == "="
+
+    def apply(self, current: float) -> float:
+        if self.op == "=":
+            return self.value
+        if self.op == "-=":
+            return current - self.value
+        return current + self.value
+
+    def __repr__(self) -> str:
+        return f"{self.axis} {self.op} {self.value}"
+
+
 class ReturnSignal(Exception):
     def __init__(self, value: Any):
         self.value = value

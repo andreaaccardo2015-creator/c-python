@@ -35,5 +35,6 @@ prova/
 llvm_backend/build/
 !llvm_backend/build/.gitkeep
 
-# Large local-only
+# Large local-only interpreter copies (non vanno nel git)
 Cpython_interpreter_64x_win.exe
+cpython/*.exe

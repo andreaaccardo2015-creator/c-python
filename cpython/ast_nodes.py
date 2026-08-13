@@ -158,3 +158,14 @@ class PositionLiteral(Node):
     """x 0; y 0"""
     x: Node = None  # type: ignore
     y: Node = None  # type: ignore
+
+
+@dataclass
+class AxisDelta(Node):
+    """Argomento con asse: part("braccio", y += 5)
+
+    op vale "+=", "-=" oppure "=" (valore assoluto invece di spostamento).
+    """
+    axis: str = ""
+    op: str = "+="
+    value: Node = None  # type: ignore

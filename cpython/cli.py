@@ -25,6 +25,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_false",
         help="Disabilita il backend JIT C++/LLVM",
     )
+    parser.add_argument(
+        "--ipc-stdio",
+        action="store_true",
+        help="Modo editor: handshake ready/bindings con FinityEngine via stdio",
+    )
     parser.set_defaults(jit=True)
     args = parser.parse_args(argv)
 
@@ -73,10 +78,49 @@ def main(argv: list[str] | None = None) -> int:
 
     source = path.read_text(encoding="utf-8")
     interp = Interpreter(filename=str(path.resolve()), enable_jit=enable_jit)
+
+    if args.ipc_stdio:
+        return _run_ipc_stdio(interp, source, str(path))
+
     try:
         interp.run_source(source)
         return 0
     except CPythonError as e:
+        print(f"Errore: {e}", file=sys.stderr)
+        return 1
+    except KeyboardInterrupt:
+        print("\nInterrotto.", file=sys.stderr)
+        return 130
+
+
+def _run_ipc_stdio(interp: Interpreter, source: str, filename: str) -> int:
+    """Handshake ready/bindings, poi esecuzione normale con la convalida attiva."""
+    from . import __version__, ipc
+    from .parser import Parser
+
+    try:
+        program = Parser.parse_source(source)
+    except CPythonError as e:
+        ipc.send_error(e.message, file=filename, line=e.line, column=e.column)
+        print(f"Errore: {e}", file=sys.stderr)
+        return 1
+
+    actors = ipc.collect_actor_names(program)
+    ipc.send_ready(actors, language_version=__version__)
+    bindings = ipc.read_bindings(timeout=5.0)
+
+    try:
+        import finityengine
+
+        finityengine.set_bindings(bindings)
+    except Exception:
+        pass  # pygame assente o altro problema di importazione: si prosegue senza convalida
+
+    try:
+        interp.exec_program(program)
+        return 0
+    except CPythonError as e:
+        ipc.send_error(e.message, file=filename, line=e.line, column=e.column)
         print(f"Errore: {e}", file=sys.stderr)
         return 1
     except KeyboardInterrupt:

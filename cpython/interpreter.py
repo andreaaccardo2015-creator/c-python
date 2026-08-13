@@ -88,6 +88,20 @@ class Interpreter:
             },
         )
         self.globals.define("print", print_mod)
+        animation_mod = NativeModule(
+            "animation",
+            {
+                "start": NativeFunction("start", self._builtin_animation_start),
+                "stop": NativeFunction("stop", self._builtin_animation_stop),
+                "time": NativeFunction("time", self._builtin_animation_time),
+            },
+        )
+        self.globals.define("animation", animation_mod)
+        rigidbody_mod = NativeModule(
+            "rigidbody",
+            {"call": NativeFunction("call", self._builtin_rigidbody_call)},
+        )
+        self.globals.define("rigidbody", rigidbody_mod)
         self.globals.define("getinput", NativeFunction("getinput", self._builtin_getinput))
         self.globals.define(
             "getcollision", NativeFunction("getcollision", self._builtin_getcollision)
@@ -124,6 +138,33 @@ class Interpreter:
             return bool(finityengine.get_collision(name))
         except Exception:
             return False
+
+    def _builtin_animation_start(self, name: Any) -> None:
+        """animation.start("camminata")"""
+        import finityengine
+
+        finityengine.animation_start(name)
+
+    def _builtin_animation_stop(self, name: Any = None) -> None:
+        """animation.stop("camminata")"""
+        import finityengine
+
+        finityengine.animation_stop(name)
+
+    def _builtin_animation_time(self, seconds: Any) -> bool:
+        """if (animation.time "2") — vera quando l'animazione arriva a 2 secondi."""
+        try:
+            import finityengine
+
+            return bool(finityengine.animation_time(seconds))
+        except Exception:
+            return False
+
+    def _builtin_rigidbody_call(self, alias: Any = "rigidbody") -> Any:
+        """rigidbody.call("RB")"""
+        import finityengine
+
+        return finityengine.rigidbody_call(alias)
 
     def _builtin_getinput(self, prompt: Any = "") -> Any:
         kind = "string"
@@ -452,6 +493,11 @@ class Interpreter:
     def eval_Literal(self, node: ast.Literal) -> Any:
         return node.value
 
+    def eval_AxisDelta(self, node: ast.AxisDelta) -> Any:
+        from .values import AxisDelta
+
+        return AxisDelta(axis=node.axis, op=node.op, value=float(self.eval(node.value)))
+
     def eval_PositionLiteral(self, node: ast.PositionLiteral) -> Any:
         from finityengine import Position
 
@@ -566,20 +612,27 @@ class Interpreter:
         callee = self.eval(node.callee)
         args = [self.eval(a) for a in node.args]
 
-        if isinstance(callee, ClassInfo):
-            return self._instantiate(callee, tuple(args))
+        try:
+            if isinstance(callee, ClassInfo):
+                return self._instantiate(callee, tuple(args))
 
-        if isinstance(callee, BoundMethod):
-            return self._call_function(callee.function, args, this=callee.instance)
+            if isinstance(callee, BoundMethod):
+                return self._call_function(callee.function, args, this=callee.instance)
 
-        if isinstance(callee, Function):
-            return self._call_function(callee, args)
+            if isinstance(callee, Function):
+                return self._call_function(callee, args)
 
-        if isinstance(callee, NativeFunction):
-            return callee(*args)
+            if isinstance(callee, NativeFunction):
+                return callee(*args)
 
-        if callable(callee):
-            return callee(*args)
+            if callable(callee):
+                return callee(*args)
+        except RuntimeError_ as e:
+            # le funzioni native (es. rigidbody.call, part) non conoscono la
+            # riga dello script: la aggiungiamo qui se manca ancora.
+            if e.line is None:
+                raise RuntimeError_(e.message, node.line, node.column) from e
+            raise
 
         raise RuntimeError_(f"Oggetto non chiamabile: {callee!r}", node.line, node.column)
 

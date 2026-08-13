@@ -52,7 +52,7 @@ jobs:
           "$h  CPython_Setup.exe" | Set-Content dist/CPython_Setup.exe.sha256 -Encoding ascii
           Write-Host "SHA256: $h"
 
-      - name: Upload Setup only
+      - name: Upload Setup
         uses: actions/upload-artifact@v4
         with:
           name: CPython_Setup
@@ -61,9 +61,38 @@ jobs:
             dist/CPython_Setup.exe.sha256
           if-no-files-found: error
 
+      - name: Upload interpreter EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cpython_interpreter_64x_win
+          path: dist/Cpython_interpreter_64x_win.exe
+          if-no-files-found: error
+
+  macos:
+    name: macOS .app
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build .app
+        run: bash installer/build_macos.sh
+
+      - name: Upload .app
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cpython_interpreter_macos_app
+          path: |
+            dist/Cpython_interpreter.app
+            dist/Cpython_interpreter_macos.dmg
+          if-no-files-found: error
+
   release:
-    name: GitHub Release (solo Setup)
-    needs: [windows]
+    name: GitHub Release
+    needs: [windows, macos]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
@@ -71,20 +100,25 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: CPython_Setup
-          path: out
+          path: artifacts
 
-      - name: Check
+      - name: Pack
         id: check
         run: |
-          ls -la out && test -f out/CPython_Setup.exe
+          mkdir -p out
+          cp artifacts/CPython_Setup/CPython_Setup.exe out/
+          cp artifacts/CPython_Setup/CPython_Setup.exe.sha256 out/ || true
+          cp artifacts/Cpython_interpreter_64x_win/Cpython_interpreter_64x_win.exe out/ || true
+          if [ -d artifacts/Cpython_interpreter_macos_app/Cpython_interpreter.app ]; then
+            (cd artifacts/Cpython_interpreter_macos_app && zip -r "$GITHUB_WORKSPACE/out/Cpython_interpreter_macos.app.zip" Cpython_interpreter.app)
+          fi
+          cp artifacts/Cpython_interpreter_macos_app/*.dmg out/ 2>/dev/null || true
+          ls -la out
           echo "sha256=$(sha256sum out/CPython_Setup.exe | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - uses: softprops/action-gh-release@v2
         with:
-          files: |
-            out/CPython_Setup.exe
-            out/CPython_Setup.exe.sha256
+          files: out/*
           generate_release_notes: true
           body: |
             ## Windows
@@ -96,7 +130,14 @@ jobs:
             cpy run tuoFile.cpy
             ```
 
-            ## Verifica del file
+            Interprete nudo (senza installer): `Cpython_interpreter_64x_win.exe`.
+
+            ## macOS
+            Scarica **Cpython_interpreter_macos.dmg** (o lo zip `.app`), trascina
+            `Cpython_interpreter.app` in Applicazioni, poi al primo avvio se
+            Gatekeeper blocca: Impostazioni → Privacy e sicurezza → Apri comunque.
+
+            ## Verifica del file Windows
             SHA256 di `CPython_Setup.exe`:
             ```
             ${{ steps.check.outputs.sha256 }}
