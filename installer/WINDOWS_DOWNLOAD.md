@@ -1,10 +1,13 @@
-# Download Windows
+# Download
 
-Repo pubblico **solo setup** (niente codice):
+Repo pubblico **solo i file pronti** (niente codice):
 
 https://github.com/andreaaccardo2015-creator/cpython-setup
 
-Release: **`CPython_Setup.exe`** → doppio click → installa.
+Dentro c’è **solo** la cartella `installer/`:
+
+- **Windows:** `Cpython_interpreter_64x_win.exe` → doppio click → installa
+- **macOS:** `Cpython_interpreter.app` → trascina in Applicazioni
 
 Poi, in un nuovo terminale:
 
