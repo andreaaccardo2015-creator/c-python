@@ -15,6 +15,10 @@
   --cpy-dark: #2a5a96;
   --bar: rgba(20, 18, 14, 0.92);
   --input-bg: #0e0c0a;
+  --note-bg: #241e14;
+  --warn-bg: #2a1714;
+  --ok-bg: #172016;
+  --label: #d8cbb3;
 }
 html[data-theme="light"] {
   --bg: #f4eee2;
@@ -32,6 +36,10 @@ html[data-theme="light"] {
   --cpy: #2a5a96;
   --bar: rgba(244, 238, 226, 0.94);
   --input-bg: #fff;
+  --note-bg: #f3e6c8;
+  --warn-bg: #f3d4cc;
+  --ok-bg: #dce8d4;
+  --label: #5c5348;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -224,11 +232,11 @@ p, li { color: var(--paper); opacity: .92; }
 .muted, .hero-meta { color: var(--muted); font-size: 13px; }
 .note, .warn {
   border-left: 3px solid var(--amber);
-  background: #241e14;
+  background: var(--note-bg);
   padding: 12px 14px;
   border-radius: 0 8px 8px 0;
 }
-.warn { border-left-color: var(--red); background: #2a1714; }
+.warn { border-left-color: var(--red); background: var(--warn-bg); }
 
 .hero {
   padding: 72px 28px 40px;
@@ -265,6 +273,7 @@ p, li { color: var(--paper); opacity: .92; }
   font-family: inherit;
 }
 .btn:hover { text-decoration: none; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn-primary { background: var(--amber); color: var(--ink); }
 .btn-primary:hover { background: #f0b24a; color: var(--ink); }
 .btn-ghost {
@@ -309,7 +318,7 @@ p, li { color: var(--paper); opacity: .92; }
 }
 .dl-card.preferred { border-color: var(--amber-dim); box-shadow: 0 0 0 1px var(--amber-dim); }
 .dl-card h2 { margin: 0; border: 0; padding: 0; font-size: 22px; }
-.dl-card .file { font-family: "Cascadia Code", Consolas, monospace; font-size: 13px; color: #cfc3aa; }
+.dl-card .file { font-family: "Cascadia Code", Consolas, monospace; font-size: 13px; color: var(--muted); }
 .dl-card .size { color: var(--muted); font-size: 13px; }
 .dl-card ol { padding-left: 18px; margin: 8px 0 14px; }
 .dl-card .btn { width: 100%; margin-top: auto; }
@@ -319,7 +328,7 @@ th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--lin
 th { color: var(--muted); font-weight: 600; }
 
 form.feedback { display: grid; gap: 14px; margin-top: 20px; }
-label { display: grid; gap: 6px; font-size: 14px; color: #d8cbb3; }
+label { display: grid; gap: 6px; font-size: 14px; color: var(--label); }
 input, select, textarea {
   background: var(--input-bg);
   border: 1px solid var(--line);
@@ -338,7 +347,7 @@ textarea { min-height: 160px; resize: vertical; }
 .form-ok {
   display: none;
   border-left: 3px solid var(--green);
-  background: #172016;
+  background: var(--ok-bg);
   padding: 12px 14px;
   border-radius: 0 8px 8px 0;
 }

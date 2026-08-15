@@ -15,27 +15,40 @@
 
   function readJson(key, fallback) {
     try {
-      return JSON.parse(localStorage.getItem(key) || "") || fallback;
+      const raw = localStorage.getItem(key);
+      if (raw == null || raw === "") return fallback;
+      const v = JSON.parse(raw);
+      return v == null ? fallback : v;
     } catch (e) {
       return fallback;
     }
   }
 
   function accounts() {
-    return readJson(KEY_ACCOUNTS, {});
+    const map = readJson(KEY_ACCOUNTS, {});
+    return map && typeof map === "object" && !Array.isArray(map) ? map : {};
   }
 
   function saveAccounts(map) {
-    localStorage.setItem(KEY_ACCOUNTS, JSON.stringify(map));
+    try {
+      localStorage.setItem(KEY_ACCOUNTS, JSON.stringify(map));
+    } catch (e) {
+      throw e;
+    }
   }
 
   function session() {
-    return readJson(KEY_SESSION, null);
+    const s = readJson(KEY_SESSION, null);
+    return s && typeof s === "object" ? s : null;
   }
 
   function setSession(user) {
-    if (user) localStorage.setItem(KEY_SESSION, JSON.stringify(user));
-    else localStorage.removeItem(KEY_SESSION);
+    try {
+      if (user) localStorage.setItem(KEY_SESSION, JSON.stringify(user));
+      else localStorage.removeItem(KEY_SESSION);
+    } catch (e) {
+      authError = t("auth.err.store");
+    }
     document.dispatchEvent(new CustomEvent("cpy-auth"));
   }
 
@@ -44,13 +57,14 @@
   }
 
   async function hashPass(password, salt) {
+    if (!window.crypto || !crypto.subtle) throw new Error("subtle");
     const data = new TextEncoder().encode(salt + "\n" + password);
     return bytesToHex(await crypto.subtle.digest("SHA-256", data));
   }
 
   function randomSalt() {
     const a = new Uint8Array(16);
-    crypto.getRandomValues(a);
+    (window.crypto || window.msCrypto).getRandomValues(a);
     return bytesToHex(a);
   }
 
@@ -59,6 +73,7 @@
   let settingsOpen = false;
   let ghWait = null;
   let ghTimer = null;
+  let ghPollBusy = false;
 
   function gearSvg() {
     return '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.2 7.2 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.9 2h-3.8a.5.5 0 0 0-.5.42l-.36 2.54c-.58.22-1.13.54-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.8 8.48a.5.5 0 0 0 .12.64L4.95 10.7c-.04.31-.06.63-.06.94s.02.63.06.94L2.92 14.16a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.43.34.7.22l2.39-.96c.5.4 1.05.72 1.63.94l.36 2.54c.05.24.26.42.5.42h3.8c.24 0 .45-.18.5-.42l.36-2.54c.58-.22 1.13-.54 1.63-.94l2.39.96c.27.12.56.02.7-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/></svg>';
@@ -97,7 +112,6 @@
   function openSettings(tab) {
     settingsTab = tab || settingsTab || "page";
     settingsOpen = true;
-    authError = "";
     renderSettings();
     const box = document.getElementById("cpy-settings");
     if (box) box.hidden = false;
@@ -113,7 +127,7 @@
     if (!user) return "";
     const name = user.github && user.github.login ? user.github.login : user.username;
     const img = user.github && user.github.avatar
-      ? `<img src="${user.github.avatar}" alt="">`
+      ? `<img src="${escapeHtml(user.github.avatar)}" alt="">`
       : `<span class="chip-letter">${(name || "?").slice(0, 1).toUpperCase()}</span>`;
     return `<div class="user-chip">${img}<span>${escapeHtml(name)}</span></div>`;
   }
@@ -208,7 +222,6 @@
     box.querySelector("#set-lang")?.addEventListener("change", (e) => {
       I.writePrefs({ langMode: e.target.value });
       refresh();
-      renderSettings();
     });
     box.querySelector("#set-theme")?.addEventListener("change", (e) => {
       I.writePrefs({ theme: e.target.value });
@@ -240,15 +253,15 @@
   function githubIssueUrl(nonce) {
     const title = "[cpy-verify] " + nonce;
     const body = "Non cambiare il titolo. Pubblica questa issue: GitHub conferma cosi' che sei tu. Si chiude da sola.\n\nDo not edit the title. Submit this issue so GitHub can confirm it is you. It closes by itself.";
-    const next = "/" + GH_REPO + "/issues/new?title=" + encodeURIComponent(title) + "&body=" + encodeURIComponent(body);
-    return "https://github.com/login?return_to=" + encodeURIComponent(next);
+    return "https://github.com/" + GH_REPO + "/issues/new?title=" +
+      encodeURIComponent(title) + "&body=" + encodeURIComponent(body);
   }
 
   function stopGithubWait() {
     if (ghTimer) clearInterval(ghTimer);
     ghTimer = null;
     ghWait = null;
-    sessionStorage.removeItem(KEY_GH_WAIT);
+    try { sessionStorage.removeItem(KEY_GH_WAIT); } catch (e) { /* ignore */ }
   }
 
   function applyGithubIdentity(gh) {
@@ -267,22 +280,38 @@
   }
 
   async function pollGithubWait() {
-    if (!ghWait) return;
+    if (ghPollBusy || !ghWait) return;
     if (Date.now() - ghWait.startedAt > GH_WAIT_MS) {
       stopGithubWait();
-      fail("auth.github.timeout");
+      authError = t("auth.github.timeout");
+      openSettings("account");
       return;
     }
+    ghPollBusy = true;
     try {
-      const res = await fetch("https://api.github.com/repos/" + GH_REPO + "/issues?state=all&sort=created&direction=desc&per_page=15");
+      const res = await fetch(
+        "https://api.github.com/repos/" + GH_REPO + "/issues?state=all&sort=created&direction=desc&per_page=50",
+        { headers: { Accept: "application/vnd.github+json" } }
+      );
+      if (res.status === 403 || res.status === 429) {
+        authError = t("auth.err.net");
+        if (settingsOpen) renderSettings();
+        return;
+      }
       if (!res.ok) return;
       const issues = await res.json();
+      if (!Array.isArray(issues) || !ghWait) return;
       const want = "[cpy-verify] " + ghWait.nonce;
-      const hit = (issues || []).find((issue) => issue && issue.title === want && issue.user && issue.user.login);
+      const hit = issues.find((issue) =>
+        issue && !issue.pull_request && issue.title === want && issue.user && issue.user.login
+      );
       if (!hit) return;
       const created = Date.parse(hit.created_at);
-      if (created && created + 120000 < ghWait.startedAt) return;
-      const profile = await fetch("https://api.github.com/users/" + encodeURIComponent(hit.user.login));
+      if (!created || created < ghWait.startedAt - 30000) return;
+      const profile = await fetch(
+        "https://api.github.com/users/" + encodeURIComponent(hit.user.login),
+        { headers: { Accept: "application/vnd.github+json" } }
+      );
       const data = profile.ok ? await profile.json() : hit.user;
       const gh = {
         login: data.login || hit.user.login,
@@ -291,24 +320,33 @@
         name: data.name || data.login || hit.user.login,
       };
       stopGithubWait();
+      authError = "";
       applyGithubIdentity(gh);
       settingsTab = "account";
-      renderSettings();
+      openSettings("account");
     } catch (e) {
       /* keep waiting */
+    } finally {
+      ghPollBusy = false;
     }
   }
 
   function startGithubWait() {
-    const nonce = randomSalt().slice(0, 24);
-    const url = githubIssueUrl(nonce);
-    ghWait = { nonce, url, startedAt: Date.now() };
-    sessionStorage.setItem(KEY_GH_WAIT, JSON.stringify(ghWait));
-    window.open(url, "_blank", "noopener");
-    if (ghTimer) clearInterval(ghTimer);
-    ghTimer = setInterval(pollGithubWait, 5000);
-    pollGithubWait();
-    renderSettings();
+    authError = "";
+    try {
+      const nonce = randomSalt().slice(0, 24);
+      const url = githubIssueUrl(nonce);
+      ghWait = { nonce, url, startedAt: Date.now() };
+      try { sessionStorage.setItem(KEY_GH_WAIT, JSON.stringify(ghWait)); } catch (e) { /* ignore */ }
+      settingsTab = "account";
+      window.open(url, "_blank", "noopener");
+      if (ghTimer) clearInterval(ghTimer);
+      ghTimer = setInterval(pollGithubWait, 5000);
+      pollGithubWait();
+      renderSettings();
+    } catch (e) {
+      fail("auth.err.store");
+    }
   }
 
   function resumeGithubWait() {
@@ -331,30 +369,34 @@
     authError = "";
     const user = (form.user.value || "").trim();
     const pass = form.pass.value || "";
-    if (act === "signup") {
-      const pass2 = form.pass2.value || "";
-      if (!USER_RE.test(user)) return fail("auth.err.user");
-      if (pass.length < 6) return fail("auth.err.pass");
-      if (pass !== pass2) return fail("auth.err.match");
-      const map = accounts();
-      const key = user.toLowerCase();
-      if (map[key]) return fail("auth.err.exists");
-      const salt = randomSalt();
-      map[key] = { username: user, salt, hash: await hashPass(pass, salt), github: null };
-      saveAccounts(map);
-      setSession({ kind: "local", username: user, github: null });
-      settingsTab = "account";
-      renderSettings();
-      return;
-    }
-    if (act === "login") {
-      const map = accounts();
-      const rec = map[user.toLowerCase()];
-      if (!rec) return fail("auth.err.login");
-      const hash = await hashPass(pass, rec.salt);
-      if (hash !== rec.hash) return fail("auth.err.login");
-      setSession({ kind: "local", username: rec.username, github: rec.github || null });
-      renderSettings();
+    try {
+      if (act === "signup") {
+        const pass2 = form.pass2.value || "";
+        if (!USER_RE.test(user)) return fail("auth.err.user");
+        if (pass.length < 6) return fail("auth.err.pass");
+        if (pass !== pass2) return fail("auth.err.match");
+        const map = accounts();
+        const key = user.toLowerCase();
+        if (map[key]) return fail("auth.err.exists");
+        const salt = randomSalt();
+        map[key] = { username: user, salt, hash: await hashPass(pass, salt), github: null };
+        saveAccounts(map);
+        setSession({ kind: "local", username: user, github: null });
+        settingsTab = "account";
+        renderSettings();
+        return;
+      }
+      if (act === "login") {
+        const map = accounts();
+        const rec = map[user.toLowerCase()];
+        if (!rec || !rec.salt || !rec.hash) return fail("auth.err.login");
+        const hash = await hashPass(pass, rec.salt);
+        if (hash !== rec.hash) return fail("auth.err.login");
+        setSession({ kind: "local", username: rec.username, github: rec.github || null });
+        renderSettings();
+      }
+    } catch (e) {
+      fail("auth.err.store");
     }
   }
 
@@ -419,6 +461,7 @@
     lock.hidden = on;
     form.hidden = !on;
     if (extra) extra.hidden = !on;
+    if (!on) document.getElementById("ok")?.classList.remove("show");
     form.querySelectorAll("input, select, textarea, button").forEach((el) => {
       el.disabled = !on;
     });

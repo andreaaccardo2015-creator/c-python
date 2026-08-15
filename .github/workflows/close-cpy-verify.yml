@@ -17,11 +17,19 @@ jobs:
             const n = context.issue.number;
             const { owner, repo } = context.repo;
             try {
+              await github.rest.issues.createLabel({
+                owner, repo, name: "cpy-verify", color: "e3a23a",
+                description: "C Python site GitHub verification",
+              });
+            } catch (e) {
+              /* already exists */
+            }
+            try {
               await github.rest.issues.addLabels({
                 owner, repo, issue_number: n, labels: ["cpy-verify"],
               });
             } catch (e) {
-              /* label may be missing on first run */
+              /* ignore */
             }
             await github.rest.issues.createComment({
               owner, repo, issue_number: n,

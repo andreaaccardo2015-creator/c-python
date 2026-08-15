@@ -54,6 +54,7 @@
       "auth.err.exists": "Questo nome utente esiste già.",
       "auth.err.login": "Nome utente o password sbagliati.",
       "auth.err.net": "GitHub non risponde. Riprova.",
+      "auth.err.store": "Questo browser non salva i dati del sito (archivio pieno o bloccato).",
       "home.ver": "linguaggio · v0.3.5 · MIT",
       "home.lead": "Un linguaggio per script, minigiochi 2D e modelli in FinityEngine. La sintassi sta a metà tra Python e C#, i file sono <code>.cp</code> o <code>.cpy</code>, e si lanciano con <code>cpy run</code>.",
       "home.notcpy": "Non è l’interprete ufficiale di Python (CPython). È un linguaggio a sé, con installer proprio.",
@@ -295,6 +296,7 @@
       "auth.err.exists": "That username already exists.",
       "auth.err.login": "Wrong username or password.",
       "auth.err.net": "GitHub did not respond. Try again.",
+      "auth.err.store": "This browser cannot save site data (storage full or blocked).",
       "home.ver": "language · v0.3.5 · MIT",
       "home.lead": "A language for scripts, 2D minigames, and FinityEngine models. The syntax sits between Python and C#, files are <code>.cp</code> or <code>.cpy</code>, and you run them with <code>cpy run</code>.",
       "home.notcpy": "This is not the official Python interpreter (CPython). It is its own language, with its own installer.",
@@ -537,6 +539,7 @@
   }
 
   function applyI18n() {
+    if (!document.body) return;
     const lang = applyChrome();
     const page = document.body && document.body.getAttribute("data-page");
     if (page) {
