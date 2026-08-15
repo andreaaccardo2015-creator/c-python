@@ -18,7 +18,10 @@ cpy run tuoFile.cpy
 
 Il codice sorgente resta in `c-python` (sviluppo). Per gli utenti finali usa solo `cpython-setup`.
 
-Tutorial del linguaggio: https://andreaaccardo2015-creator.github.io/c-python/
+Sito C Python: https://andreaaccardo2015-creator.github.io/c-python/
+- Tutorial: https://andreaaccardo2015-creator.github.io/c-python/tutorial.html
+- Download: https://andreaaccardo2015-creator.github.io/c-python/download.html
+- Feedback: https://andreaaccardo2015-creator.github.io/c-python/feedback.html
 
 ## L'antivirus segnala il file?
 

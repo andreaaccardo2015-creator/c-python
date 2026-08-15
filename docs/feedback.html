@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feedback — C Python</title>
+  <meta name="description" content="Segnala un bug, un’idea o un dubbio su C Python. Il messaggio diventa una issue su GitHub.">
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="sitebar">
+  <a class="brand" href="index.html"><img src="logo.png" alt="">C PYTHON</a>
+  <nav class="sitenav">
+    <a href="index.html">Home</a>
+    <a href="download.html">Download</a>
+    <a href="tutorial.html">Tutorial</a>
+    <a href="feedback.html" class="active">Feedback</a>
+    <a href="https://github.com/andreaaccardo2015-creator/c-python">Sorgenti</a>
+    <a class="btn" href="download.html">Scarica</a>
+  </nav>
+</header>
+
+<div class="page page-narrow">
+  <h1>Feedback</h1>
+  <p class="lead">Bug, pezzo di tutorial poco chiaro, idea per il linguaggio, problema con l’installer. Compila e si apre una issue su GitHub già scritta: basta confermare (serve un account GitHub).</p>
+
+  <form class="feedback" id="form">
+    <label>
+      Tipo
+      <select name="tipo" required>
+        <option value="Bug">Bug</option>
+        <option value="Tutorial">Tutorial poco chiaro</option>
+        <option value="Download">Problema col download / installazione</option>
+        <option value="Idea">Idea / proposta</option>
+        <option value="Altro">Altro</option>
+      </select>
+    </label>
+    <label>
+      Titolo
+      <input name="titolo" required maxlength="80" placeholder="es. getinput + f non accetta il numero">
+    </label>
+    <div class="form-row">
+      <label>
+        Sistema
+        <select name="os">
+          <option value="">Non lo so / non serve</option>
+          <option value="Windows">Windows</option>
+          <option value="macOS">macOS</option>
+        </select>
+      </label>
+      <label>
+        Nome (facoltativo)
+        <input name="nome" maxlength="40" placeholder="come firmarti">
+      </label>
+    </div>
+    <label>
+      Messaggio
+      <textarea name="msg" required placeholder="Cosa succede, cosa ti aspettavi, pezzo di codice se serve."></textarea>
+    </label>
+    <button class="btn btn-primary" type="submit">Apri la issue su GitHub</button>
+  </form>
+  <p class="form-ok" id="ok">Si è aperta la pagina di GitHub. Se non sei collegato, accedi e conferma l’invio.</p>
+
+  <h2>Senza form</h2>
+  <p>Puoi anche aprire una issue a mano: <a href="https://github.com/andreaaccardo2015-creator/c-python/issues/new">nuova issue</a> · <a href="https://github.com/andreaaccardo2015-creator/c-python/issues">elenco</a>.</p>
+
+  <footer class="site">
+    <span>C Python v0.3.5 · il feedback va sul repo pubblico, visibile a tutti</span>
+    <span><a href="index.html">torna alla home</a></span>
+  </footer>
+</div>
+<script>
+  document.getElementById("form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const f = e.target;
+    const tipo = f.tipo.value;
+    const titolo = f.titolo.value.trim();
+    const os = f.os.value;
+    const nome = f.nome.value.trim();
+    const msg = f.msg.value.trim();
+    const body = [
+      msg,
+      "",
+      "---",
+      "Inviato da: pagina feedback C Python",
+      "Tipo: " + tipo,
+      os ? "Sistema: " + os : null,
+      nome ? "Nome: " + nome : null,
+      "Versione sito: 0.3.5",
+    ].filter(Boolean).join("\n");
+    const url = "https://github.com/andreaaccardo2015-creator/c-python/issues/new?title=" +
+      encodeURIComponent("[" + tipo + "] " + titolo) +
+      "&body=" + encodeURIComponent(body);
+    window.open(url, "_blank", "noopener");
+    document.getElementById("ok").classList.add("show");
+  });
+</script>
+</body>
+</html>
