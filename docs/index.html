@@ -7,17 +7,18 @@
   <meta name="description" content="C Python è un linguaggio per script e giochi: file .cp, comando cpy, Windows e macOS. Non è l’interprete ufficiale di Python.">
   <link rel="icon" href="favicon.ico">
   <link rel="stylesheet" href="site.css">
+  <script src="js/i18n.js"></script>
 </head>
-<body>
+<body data-page="home">
 <header class="sitebar">
   <a class="brand" href="index.html"><img src="logo.png" alt="">C PYTHON</a>
   <nav class="sitenav">
-    <a href="index.html" class="active">Home</a>
-    <a href="download.html">Download</a>
-    <a href="tutorial.html">Tutorial</a>
-    <a href="feedback.html">Feedback</a>
-    <a href="https://github.com/andreaaccardo2015-creator/c-python">Sorgenti</a>
-    <a class="btn" href="download.html">Scarica</a>
+    <a href="index.html" class="active" data-i18n="nav.home">Home</a>
+    <a href="download.html" data-i18n="nav.download">Download</a>
+    <a href="tutorial.html" data-i18n="nav.tutorial">Tutorial</a>
+    <a href="feedback.html" data-i18n="nav.feedback">Feedback</a>
+    <a href="https://github.com/andreaaccardo2015-creator/c-python" data-i18n="nav.source">Sorgenti</a>
+    <a class="btn" href="download.html" data-i18n="nav.get">Scarica</a>
   </nav>
 </header>
 
@@ -25,39 +26,39 @@
   <div class="hero-mark">
     <img src="logo.png" alt="Logo Cpy">
     <div>
-      <div class="ver">linguaggio · v0.3.5 · MIT</div>
+      <div class="ver" data-i18n="home.ver">linguaggio · v0.3.5 · MIT</div>
     </div>
   </div>
   <h1>C Python</h1>
-  <p class="lead">Un linguaggio per script, minigiochi 2D e modelli in FinityEngine. La sintassi sta a metà tra Python e C#, i file sono <code>.cp</code> o <code>.cpy</code>, e si lanciano con <code>cpy run</code>.</p>
-  <p class="hero-meta">Non è l’interprete ufficiale di Python (CPython). È un linguaggio a sé, con installer proprio.</p>
+  <p class="lead" data-i18n-html="home.lead">Un linguaggio per script, minigiochi 2D e modelli in FinityEngine. La sintassi sta a metà tra Python e C#, i file sono <code>.cp</code> o <code>.cpy</code>, e si lanciano con <code>cpy run</code>.</p>
+  <p class="hero-meta" data-i18n="home.notcpy">Non è l’interprete ufficiale di Python (CPython). È un linguaggio a sé, con installer proprio.</p>
   <div class="hero-actions">
-    <a class="btn btn-primary" href="download.html">Scarica per Windows e macOS</a>
-    <a class="btn btn-ghost" href="tutorial.html">Apri il tutorial</a>
+    <a class="btn btn-primary" href="download.html" data-i18n="home.cta.dl">Scarica per Windows e macOS</a>
+    <a class="btn btn-ghost" href="tutorial.html" data-i18n="home.cta.tut">Apri il tutorial</a>
   </div>
 </section>
 
 <div class="page" style="padding-top: 12px;">
   <div class="cards cards-3">
     <div class="card">
-      <div class="tag">Terminale</div>
-      <h3>Programmi da riga di comando</h3>
-      <p>Tipi dichiarati, funzioni, classi. Chiedi dati con <code>getinput</code>, scrivi con <code>print.log</code> e <code>print.output</code>.</p>
+      <div class="tag" data-i18n="home.tag.term">Terminale</div>
+      <h3 data-i18n="home.card.term.h">Programmi da riga di comando</h3>
+      <p data-i18n-html="home.card.term.p">Tipi dichiarati, funzioni, classi. Chiedi dati con <code>getinput</code>, scrivi con <code>print.log</code> e <code>print.output</code>.</p>
     </div>
     <div class="card">
-      <div class="tag">2D</div>
-      <h3>Giochi con sdgame</h3>
-      <p>Finestra, tasti, rettangoli e testo. Un ciclo <code>while</code> e disegni ogni frame, senza editor.</p>
+      <div class="tag" data-i18n="home.tag.2d">2D</div>
+      <h3 data-i18n="home.card.2d.h">Giochi con sdgame</h3>
+      <p data-i18n-html="home.card.2d.p">Finestra, tasti, rettangoli e testo. Un ciclo <code>while</code> e disegni ogni frame, senza editor.</p>
     </div>
     <div class="card">
-      <div class="tag">3D</div>
-      <h3>Script per FinityEngine</h3>
-      <p><code>on start</code>, <code>on update</code>, collisioni, animazioni e rigidbody. Uno script per modello.</p>
+      <div class="tag" data-i18n="home.tag.3d">3D</div>
+      <h3 data-i18n="home.card.3d.h">Script per FinityEngine</h3>
+      <p data-i18n-html="home.card.3d.p"><code>on start</code>, <code>on update</code>, collisioni, animazioni e rigidbody. Uno script per modello.</p>
     </div>
   </div>
 
-  <h2>Come si scrive</h2>
-  <p>Tipo, nome e valore: l’uguale non serve. Un float vuole sempre la <code>f</code>.</p>
+  <h2 data-i18n="home.write.h">Come si scrive</h2>
+  <p data-i18n-html="home.write.p">Tipo, nome e valore: l’uguale non serve. Un float vuole sempre la <code>f</code>.</p>
 <pre><code><span class="k">import</span> time
 
 <span class="c">// Il primo commento sta sempre sotto gli import</span>
@@ -66,30 +67,30 @@ print.log(<span class="s">"ciao da C Python"</span>)
 <span class="t">string</span> nome getinput(<span class="s">"come ti chiami? "</span>)
 print.output(<span class="s">"piacere,"</span>, nome)
 time.breakcode(<span class="n">1</span>)</code></pre>
-  <p><a href="tutorial.html">Tutto il linguaggio, con gli errori tipici →</a></p>
+  <p><a href="tutorial.html" data-i18n="home.write.more">Tutto il linguaggio, con gli errori tipici →</a></p>
 
-  <h2>Due passi per partire</h2>
+  <h2 data-i18n="home.steps.h">Due passi per partire</h2>
   <div class="cards">
     <div class="card">
-      <h3>1. Installa</h3>
-      <p>Windows: doppio click sull’exe. macOS: apri il DMG e lancia l’app una volta. Poi, in un terminale nuovo, <code>cpy version</code>.</p>
-      <p><a href="download.html">Pagina download</a></p>
+      <h3 data-i18n="home.step1.h">1. Installa</h3>
+      <p data-i18n-html="home.step1.p">Windows: doppio click sull’exe. macOS: apri il DMG e lancia l’app una volta. Poi, in un terminale nuovo, <code>cpy version</code>.</p>
+      <p><a href="download.html" data-i18n="home.step1.a">Pagina download</a></p>
     </div>
     <div class="card">
-      <h3>2. Scrivi un file .cp</h3>
-      <p>Crea <code>ciao.cp</code> e lancialo con <code>cpy run ciao.cp</code>. Gli esempi sono nel repository sorgente.</p>
-      <p><a href="https://github.com/andreaaccardo2015-creator/c-python/tree/main/esempi">Cartella esempi</a></p>
+      <h3 data-i18n="home.step2.h">2. Scrivi un file .cp</h3>
+      <p data-i18n-html="home.step2.p">Crea <code>ciao.cp</code> e lancialo con <code>cpy run ciao.cp</code>. Gli esempi sono nel repository sorgente.</p>
+      <p><a href="https://github.com/andreaaccardo2015-creator/c-python/tree/main/esempi" data-i18n="home.step2.a">Cartella esempi</a></p>
     </div>
   </div>
 
-  <h2>Feedback</h2>
-  <p>Hai trovato un bug, un pezzo di tutorial poco chiaro, o un’idea per il linguaggio? La pagina di feedback apre una issue su GitHub con quello che scrivi.</p>
-  <p><a class="btn btn-ghost" href="feedback.html">Invia un feedback</a></p>
+  <h2 data-i18n="home.fb.h">Feedback</h2>
+  <p data-i18n="home.fb.p">Hai trovato un bug, un pezzo di tutorial poco chiaro, o un’idea per il linguaggio? Serve un account (o GitHub) per inviare.</p>
+  <p><a class="btn btn-ghost" href="feedback.html" data-i18n="home.fb.a">Invia un feedback</a></p>
 
   <footer class="site">
-    <span>C Python v0.3.5 · licenza MIT · Andrea Accardo</span>
+    <span data-i18n="home.foot">C Python v0.3.5 · licenza MIT · Andrea Accardo</span>
     <span>
-      <a href="https://github.com/andreaaccardo2015-creator/c-python">sorgenti</a> ·
+      <a href="https://github.com/andreaaccardo2015-creator/c-python" data-i18n="home.foot.src">sorgenti</a> ·
       <a href="download.html">download</a> ·
       <a href="feedback.html">feedback</a>
     </span>
@@ -100,5 +101,6 @@ time.breakcode(<span class="n">1</span>)</code></pre>
   const h = location.hash.replace("#", "");
   if (h && hashes.includes(h)) location.replace("tutorial.html" + location.hash);
 </script>
+<script src="js/app.js"></script>
 </body>
 </html>

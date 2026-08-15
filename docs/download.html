@@ -7,67 +7,68 @@
   <meta name="description" content="Scarica C Python per Windows e macOS. Interprete, comando cpy e associazione dei file .cp.">
   <link rel="icon" href="favicon.ico">
   <link rel="stylesheet" href="site.css">
+  <script src="js/i18n.js"></script>
 </head>
-<body>
+<body data-page="download">
 <header class="sitebar">
   <a class="brand" href="index.html"><img src="logo.png" alt="">C PYTHON</a>
   <nav class="sitenav">
-    <a href="index.html">Home</a>
-    <a href="download.html" class="active">Download</a>
-    <a href="tutorial.html">Tutorial</a>
-    <a href="feedback.html">Feedback</a>
-    <a href="https://github.com/andreaaccardo2015-creator/c-python">Sorgenti</a>
-    <a class="btn" href="download.html">Scarica</a>
+    <a href="index.html" data-i18n="nav.home">Home</a>
+    <a href="download.html" class="active" data-i18n="nav.download">Download</a>
+    <a href="tutorial.html" data-i18n="nav.tutorial">Tutorial</a>
+    <a href="feedback.html" data-i18n="nav.feedback">Feedback</a>
+    <a href="https://github.com/andreaaccardo2015-creator/c-python" data-i18n="nav.source">Sorgenti</a>
+    <a class="btn" href="download.html" data-i18n="nav.get">Scarica</a>
   </nav>
 </header>
 
 <div class="page">
-  <h1>Download</h1>
-  <p class="lead">Versione <strong>0.3.5</strong>. I file pronti stanno solo nel repository <a href="https://github.com/andreaaccardo2015-creator/cpython-setup">cpython-setup</a>, cartella <code>installer/</code>. Il codice sorgente è un altro repo.</p>
+  <h1 data-i18n="dl.h">Download</h1>
+  <p class="lead" data-i18n-html="dl.lead">Versione <strong>0.3.5</strong>. I file pronti stanno solo nel repository <a href="https://github.com/andreaaccardo2015-creator/cpython-setup">cpython-setup</a>, cartella <code>installer/</code>. Il codice sorgente è un altro repo.</p>
 
   <div class="dl-grid">
     <article class="dl-card" id="win">
       <h2>Windows</h2>
       <div class="file">Cpython_interpreter_64x_win.exe</div>
-      <div class="size">64 bit · circa 23 MB</div>
+      <div class="size" data-i18n="dl.win.size">64 bit · circa 23 MB</div>
       <ol>
-        <li>Scarica l’exe.</li>
-        <li>Doppio click: installa demone, comando <code>cpy</code> e associazione dei file.</li>
-        <li>Apri un <strong>nuovo</strong> terminale e prova <code>cpy version</code>.</li>
+        <li data-i18n="dl.win.1">Scarica l’exe.</li>
+        <li data-i18n-html="dl.win.2">Doppio click: installa demone, comando <code>cpy</code> e associazione dei file.</li>
+        <li data-i18n-html="dl.win.3">Apri un <strong>nuovo</strong> terminale e prova <code>cpy version</code>.</li>
       </ol>
-      <a class="btn btn-win" href="https://github.com/andreaaccardo2015-creator/cpython-setup/raw/master/installer/Cpython_interpreter_64x_win.exe">Scarica per Windows</a>
+      <a class="btn btn-win" href="https://github.com/andreaaccardo2015-creator/cpython-setup/raw/master/installer/Cpython_interpreter_64x_win.exe" data-i18n="dl.win.btn">Scarica per Windows</a>
     </article>
     <article class="dl-card" id="mac">
       <h2>macOS</h2>
       <div class="file">Cpython_interpreter_macos.dmg</div>
-      <div class="size">Intel e Apple Silicon · circa 23 MB</div>
+      <div class="size" data-i18n="dl.mac.size">Intel e Apple Silicon · circa 23 MB</div>
       <ol>
-        <li>Scarica il DMG e aprilo.</li>
-        <li>Doppio click su <code>Cpython_interpreter_macos.app</code> <strong>una volta</strong>.</li>
-        <li>L’app si copia in Applicazioni, attiva <code>cpy</code> e stacca il disco.</li>
-        <li>Se macOS blocca: Impostazioni → Privacy e sicurezza → Apri comunque.</li>
+        <li data-i18n="dl.mac.1">Scarica il DMG e aprilo.</li>
+        <li data-i18n-html="dl.mac.2">Doppio click su <code>Cpython_interpreter_macos.app</code> <strong>una volta</strong>.</li>
+        <li data-i18n-html="dl.mac.3">L’app si copia in Applicazioni, attiva <code>cpy</code> e stacca il disco.</li>
+        <li data-i18n="dl.mac.4">Se macOS blocca: Impostazioni → Privacy e sicurezza → Apri comunque.</li>
       </ol>
-      <a class="btn btn-mac" href="https://github.com/andreaaccardo2015-creator/cpython-setup/raw/master/installer/Cpython_interpreter_macos.dmg">Scarica per macOS</a>
+      <a class="btn btn-mac" href="https://github.com/andreaaccardo2015-creator/cpython-setup/raw/master/installer/Cpython_interpreter_macos.dmg" data-i18n="dl.mac.btn">Scarica per macOS</a>
     </article>
   </div>
 
-  <h2>Dopo l’installazione</h2>
+  <h2 data-i18n="dl.after.h">Dopo l’installazione</h2>
 <pre><code>cpy version
 cpy run tuoFile.cp</code></pre>
-  <p>Poi il <a href="tutorial.html">tutorial</a>: primo programma, sintassi, sdgame e FinityEngine.</p>
+  <p data-i18n-html="dl.after.p">Poi il <a href="tutorial.html">tutorial</a>: primo programma, sintassi, sdgame e FinityEngine.</p>
 
-  <h2>Antivirus</h2>
+  <h2 data-i18n="dl.av.h">Antivirus</h2>
   <div class="note">
-    <p>Alcuni antivirus segnalano l’exe PyInstaller come sospetto. È un <strong>falso positivo noto</strong>: il codice è pubblico, licenza MIT, build su GitHub Actions. Il programma non chiede i privilegi di amministratore e non parla con server esterni.</p>
-    <p>Dettagli, hash e come sbloccarlo: <a href="https://github.com/andreaaccardo2015-creator/c-python/blob/main/ANTIVIRUS.md">ANTIVIRUS.md</a>.</p>
+    <p data-i18n-html="dl.av.p">Alcuni antivirus segnalano l’exe PyInstaller come sospetto. È un <strong>falso positivo noto</strong>: il codice è pubblico, licenza MIT, build su GitHub Actions. Il programma non chiede i privilegi di amministratore e non parla con server esterni.</p>
+    <p><a href="https://github.com/andreaaccardo2015-creator/c-python/blob/main/ANTIVIRUS.md" data-i18n="dl.av.a">Dettagli, hash e come sbloccarlo: ANTIVIRUS.md.</a></p>
   </div>
 
-  <h2>Sorgenti</h2>
-  <p>Chi sviluppa il linguaggio usa <a href="https://github.com/andreaaccardo2015-creator/c-python">c-python</a>. Chi vuole solo installare usa <a href="https://github.com/andreaaccardo2015-creator/cpython-setup">cpython-setup</a>.</p>
+  <h2 data-i18n="dl.src.h">Sorgenti</h2>
+  <p data-i18n-html="dl.src.p">Chi sviluppa il linguaggio usa <a href="https://github.com/andreaaccardo2015-creator/c-python">c-python</a>. Chi vuole solo installare usa <a href="https://github.com/andreaaccardo2015-creator/cpython-setup">cpython-setup</a>.</p>
 
   <footer class="site">
-    <span>C Python v0.3.5 · licenza MIT</span>
-    <span><a href="feedback.html">Un problema col download? Scrivilo qui</a></span>
+    <span data-i18n="dl.foot">C Python v0.3.5 · licenza MIT</span>
+    <span><a href="feedback.html" data-i18n="dl.foot.a">Un problema col download? Scrivilo qui</a></span>
   </footer>
 </div>
 <script>
@@ -75,5 +76,6 @@ cpy run tuoFile.cp</code></pre>
   const mac = /Mac|iPhone|iPad/.test(ua);
   document.getElementById(mac ? "mac" : "win").classList.add("preferred");
 </script>
+<script src="js/app.js"></script>
 </body>
 </html>

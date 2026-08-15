@@ -7,94 +7,77 @@
   <meta name="description" content="Segnala un bug, un’idea o un dubbio su C Python. Il messaggio diventa una issue su GitHub.">
   <link rel="icon" href="favicon.ico">
   <link rel="stylesheet" href="site.css">
+  <script src="js/i18n.js"></script>
 </head>
-<body>
+<body data-page="feedback">
 <header class="sitebar">
   <a class="brand" href="index.html"><img src="logo.png" alt="">C PYTHON</a>
   <nav class="sitenav">
-    <a href="index.html">Home</a>
-    <a href="download.html">Download</a>
-    <a href="tutorial.html">Tutorial</a>
-    <a href="feedback.html" class="active">Feedback</a>
-    <a href="https://github.com/andreaaccardo2015-creator/c-python">Sorgenti</a>
-    <a class="btn" href="download.html">Scarica</a>
+    <a href="index.html" data-i18n="nav.home">Home</a>
+    <a href="download.html" data-i18n="nav.download">Download</a>
+    <a href="tutorial.html" data-i18n="nav.tutorial">Tutorial</a>
+    <a href="feedback.html" class="active" data-i18n="nav.feedback">Feedback</a>
+    <a href="https://github.com/andreaaccardo2015-creator/c-python" data-i18n="nav.source">Sorgenti</a>
+    <a class="btn" href="download.html" data-i18n="nav.get">Scarica</a>
   </nav>
 </header>
 
 <div class="page page-narrow">
-  <h1>Feedback</h1>
-  <p class="lead">Bug, pezzo di tutorial poco chiaro, idea per il linguaggio, problema con l’installer. Compila e si apre una issue su GitHub già scritta: basta confermare (serve un account GitHub).</p>
+  <h1 data-i18n="fb.h">Feedback</h1>
+  <p class="lead" data-i18n="fb.lead">Bug, pezzo di tutorial poco chiaro, idea per il linguaggio, problema con l’installer. Compila e si apre una issue su GitHub già scritta.</p>
 
-  <form class="feedback" id="form">
+  <div class="fb-lock" id="fb-lock">
+    <p data-i18n="fb.lock">I feedback si inviano solo da collegati. Crea un account C Python oppure collega GitHub dalle impostazioni, accanto al logo.</p>
+    <button type="button" class="btn btn-primary" data-open-settings data-i18n="auth.open">Apri impostazioni</button>
+  </div>
+
+  <form class="feedback" id="form" hidden>
     <label>
-      Tipo
+      <span data-i18n="fb.tipo">Tipo</span>
       <select name="tipo" required>
-        <option value="Bug">Bug</option>
-        <option value="Tutorial">Tutorial poco chiaro</option>
-        <option value="Download">Problema col download / installazione</option>
-        <option value="Idea">Idea / proposta</option>
-        <option value="Altro">Altro</option>
+        <option value="Bug" data-i18n="fb.tipo.bug">Bug</option>
+        <option value="Tutorial" data-i18n="fb.tipo.tut">Tutorial poco chiaro</option>
+        <option value="Download" data-i18n="fb.tipo.dl">Problema col download / installazione</option>
+        <option value="Idea" data-i18n="fb.tipo.idea">Idea / proposta</option>
+        <option value="Altro" data-i18n="fb.tipo.other">Altro</option>
       </select>
     </label>
     <label>
-      Titolo
-      <input name="titolo" required maxlength="80" placeholder="es. getinput + f non accetta il numero">
+      <span data-i18n="fb.title">Titolo</span>
+      <input name="titolo" required maxlength="80" data-i18n-placeholder="fb.title.ph" placeholder="es. getinput + f non accetta il numero">
     </label>
     <div class="form-row">
       <label>
-        Sistema
+        <span data-i18n="fb.os">Sistema</span>
         <select name="os">
-          <option value="">Non lo so / non serve</option>
+          <option value="" data-i18n="fb.os.na">Non lo so / non serve</option>
           <option value="Windows">Windows</option>
           <option value="macOS">macOS</option>
         </select>
       </label>
       <label>
-        Nome (facoltativo)
-        <input name="nome" maxlength="40" placeholder="come firmarti">
+        <span data-i18n="fb.name">Nome (facoltativo)</span>
+        <input name="nome" maxlength="40" data-i18n-placeholder="fb.name.ph" placeholder="come firmarti">
       </label>
     </div>
     <label>
-      Messaggio
-      <textarea name="msg" required placeholder="Cosa succede, cosa ti aspettavi, pezzo di codice se serve."></textarea>
+      <span data-i18n="fb.msg">Messaggio</span>
+      <textarea name="msg" required data-i18n-placeholder="fb.msg.ph" placeholder="Cosa succede, cosa ti aspettavi, pezzo di codice se serve."></textarea>
     </label>
-    <button class="btn btn-primary" type="submit">Apri la issue su GitHub</button>
+    <button class="btn btn-primary" type="submit" data-i18n="fb.send">Apri la issue su GitHub</button>
   </form>
-  <p class="form-ok" id="ok">Si è aperta la pagina di GitHub. Se non sei collegato, accedi e conferma l’invio.</p>
+  <p class="form-ok" id="ok" data-i18n="fb.ok">Si è aperta la pagina di GitHub. Se non sei collegato lì, accedi e conferma l’invio.</p>
 
-  <h2>Senza form</h2>
-  <p>Puoi anche aprire una issue a mano: <a href="https://github.com/andreaaccardo2015-creator/c-python/issues/new">nuova issue</a> · <a href="https://github.com/andreaaccardo2015-creator/c-python/issues">elenco</a>.</p>
+  <div id="fb-extra" hidden>
+    <h2 data-i18n="fb.manual.h">Senza form</h2>
+    <p data-i18n-html="fb.manual.p">Puoi anche aprire una issue a mano: <a href="https://github.com/andreaaccardo2015-creator/c-python/issues/new">nuova issue</a> · <a href="https://github.com/andreaaccardo2015-creator/c-python/issues">elenco</a>.</p>
+  </div>
 
   <footer class="site">
-    <span>C Python v0.3.5 · il feedback va sul repo pubblico, visibile a tutti</span>
-    <span><a href="index.html">torna alla home</a></span>
+    <span data-i18n="fb.foot">C Python v0.3.5 · il feedback va sul repo pubblico, visibile a tutti</span>
+    <span><a href="index.html" data-i18n="fb.home">torna alla home</a></span>
   </footer>
 </div>
-<script>
-  document.getElementById("form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const f = e.target;
-    const tipo = f.tipo.value;
-    const titolo = f.titolo.value.trim();
-    const os = f.os.value;
-    const nome = f.nome.value.trim();
-    const msg = f.msg.value.trim();
-    const body = [
-      msg,
-      "",
-      "---",
-      "Inviato da: pagina feedback C Python",
-      "Tipo: " + tipo,
-      os ? "Sistema: " + os : null,
-      nome ? "Nome: " + nome : null,
-      "Versione sito: 0.3.5",
-    ].filter(Boolean).join("\n");
-    const url = "https://github.com/andreaaccardo2015-creator/c-python/issues/new?title=" +
-      encodeURIComponent("[" + tipo + "] " + titolo) +
-      "&body=" + encodeURIComponent(body);
-    window.open(url, "_blank", "noopener");
-    document.getElementById("ok").classList.add("show");
-  });
-</script>
+<script src="js/app.js"></script>
 </body>
 </html>

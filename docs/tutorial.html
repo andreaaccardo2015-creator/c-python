@@ -7,72 +7,73 @@
   <meta name="description" content="Tutorial completo del linguaggio C Python: installazione, sintassi, librerie, sdgame e FinityEngine.">
   <link rel="icon" href="favicon.ico">
   <link rel="stylesheet" href="site.css">
+  <script src="js/i18n.js"></script>
 </head>
-<body>
+<body data-page="tutorial">
 <header class="sitebar">
   <a class="brand" href="index.html"><img src="logo.png" alt="">C PYTHON</a>
   <nav class="sitenav">
-    <a href="index.html">Home</a>
-    <a href="download.html">Download</a>
-    <a href="tutorial.html" class="active">Tutorial</a>
-    <a href="feedback.html">Feedback</a>
-    <a href="https://github.com/andreaaccardo2015-creator/c-python">Sorgenti</a>
-    <a class="btn" href="download.html">Scarica</a>
+    <a href="index.html" data-i18n="nav.home">Home</a>
+    <a href="download.html" data-i18n="nav.download">Download</a>
+    <a href="tutorial.html" class="active" data-i18n="nav.tutorial">Tutorial</a>
+    <a href="feedback.html" data-i18n="nav.feedback">Feedback</a>
+    <a href="https://github.com/andreaaccardo2015-creator/c-python" data-i18n="nav.source">Sorgenti</a>
+    <a class="btn" href="download.html" data-i18n="nav.get">Scarica</a>
   </nav>
 </header>
 <div class="wrap">
 <nav class="sidenav">
-  <div class="ver">tutorial · v0.3.5</div>
-  <a href="#cos-e">Cos’è</a>
-  <a href="#installazione">Installazione</a>
-  <a href="#primo-programma">Primo programma</a>
-  <a href="#sintassi">Sintassi</a>
-  <a href="#funzioni">Funzioni e classi</a>
-  <a href="#librerie">Librerie</a>
-  <a href="#sdgame">Giochi 2D · sdgame</a>
-  <a href="#finity">FinityEngine</a>
-  <a href="#animazioni">Animazioni e collisioni</a>
-  <a href="#rigidbody">Rigidbody e parti</a>
-  <a href="#cli">Comandi</a>
-  <a href="#riferimento">Riferimento rapido</a>
+  <div class="ver" data-i18n="tut.side">tutorial · v0.3.5</div>
+  <a href="#cos-e" data-i18n="tut.nav.what">Cos’è</a>
+  <a href="#installazione" data-i18n="tut.nav.install">Installazione</a>
+  <a href="#primo-programma" data-i18n="tut.nav.first">Primo programma</a>
+  <a href="#sintassi" data-i18n="tut.nav.syntax">Sintassi</a>
+  <a href="#funzioni" data-i18n="tut.nav.fun">Funzioni e classi</a>
+  <a href="#librerie" data-i18n="tut.nav.lib">Librerie</a>
+  <a href="#sdgame" data-i18n="tut.nav.sd">Giochi 2D · sdgame</a>
+  <a href="#finity" data-i18n="tut.nav.fe">FinityEngine</a>
+  <a href="#animazioni" data-i18n="tut.nav.an">Animazioni e collisioni</a>
+  <a href="#rigidbody" data-i18n="tut.nav.rb">Rigidbody e parti</a>
+  <a href="#cli" data-i18n="tut.nav.cli">Comandi</a>
+  <a href="#riferimento" data-i18n="tut.nav.ref">Riferimento rapido</a>
 </nav>
 <main class="doc">
-  <h1>Tutorial C Python</h1>
-  <p class="lead">C Python è un linguaggio per script e giochi: la sintassi sta a metà tra Python e C#, i file sono <code>.cp</code> o <code>.cpy</code>, e si lanciano con <code>cpy run</code>.</p>
-  <p class="hero-meta">Non è l’interprete ufficiale di Python (CPython). È un linguaggio a sé, con installer proprio.</p>
+  <h1 data-i18n="tut.h">Tutorial C Python</h1>
+  <p class="lead" data-i18n-html="tut.lead">C Python è un linguaggio per script e giochi: la sintassi sta a metà tra Python e C#, i file sono <code>.cp</code> o <code>.cpy</code>, e si lanciano con <code>cpy run</code>.</p>
+  <p class="hero-meta" data-i18n="tut.notcpy">Non è l’interprete ufficiale di Python (CPython). È un linguaggio a sé, con installer proprio.</p>
 
-  <h2 id="cos-e">Cos’è</h2>
-  <p>Con C Python scrivi programmi da terminale, minigiochi 2D e script per modelli 3D in FinityEngine. L’interprete capisce tipi dichiarati (<code>int</code>, <code>float</code>, <code>string</code>), blocchi con graffe o indentazione, e moduli come <code>time</code>, <code>math</code>, <code>sdgame</code>, <code>finityengine</code>.</p>
+  <h2 id="cos-e" data-i18n="tut.what.h">Cos’è</h2>
+  <p data-i18n-html="tut.what.p">Con C Python scrivi programmi da terminale, minigiochi 2D e script per modelli 3D in FinityEngine. L’interprete capisce tipi dichiarati (<code>int</code>, <code>float</code>, <code>string</code>), blocchi con graffe o indentazione, e moduli come <code>time</code>, <code>math</code>, <code>sdgame</code>, <code>finityengine</code>.</p>
   <div class="cards">
     <div class="card">
-      <h3>File</h3>
-      <p>Estensioni <code>.cp</code> e <code>.cpy</code>. I commenti sono <code>//</code> e stanno sotto gli import.</p>
+      <h3 data-i18n="tut.file.h">File</h3>
+      <p data-i18n-html="tut.file.p">Estensioni <code>.cp</code> e <code>.cpy</code>. I commenti sono <code>//</code> e stanno sotto gli import.</p>
     </div>
     <div class="card">
-      <h3>Esecuzione</h3>
-      <p>Dopo l’install: <code>cpy run tuoFile.cp</code> in un terminale nuovo.</p>
+      <h3 data-i18n="tut.run.h">Esecuzione</h3>
+      <p data-i18n-html="tut.run.p">Dopo l’install: <code>cpy run tuoFile.cp</code> in un terminale nuovo.</p>
     </div>
   </div>
 
-  <h2 id="installazione">Installazione</h2>
-  <p>I file pronti stanno nella <a href="download.html">pagina download</a>. Repository: <a href="https://github.com/andreaaccardo2015-creator/cpython-setup">cpython-setup</a>.</p>
+  <h2 id="installazione" data-i18n="tut.inst.h">Installazione</h2>
+  <p data-i18n-html="tut.inst.p">I file pronti stanno nella <a href="download.html">pagina download</a>. Repository: <a href="https://github.com/andreaaccardo2015-creator/cpython-setup">cpython-setup</a>.</p>
   <h3>Windows</h3>
   <ol>
-    <li>Scarica <code>Cpython_interpreter_64x_win.exe</code>.</li>
-    <li>Doppio click: installa demone, comando <code>cpy</code> e associazione dei file.</li>
-    <li>Apri un <strong>nuovo</strong> terminale e prova <code>cpy version</code>.</li>
+    <li data-i18n-html="tut.inst.w1">Scarica <code>Cpython_interpreter_64x_win.exe</code>.</li>
+    <li data-i18n-html="tut.inst.w2">Doppio click: installa demone, comando <code>cpy</code> e associazione dei file.</li>
+    <li data-i18n-html="tut.inst.w3">Apri un <strong>nuovo</strong> terminale e prova <code>cpy version</code>.</li>
   </ol>
   <h3>macOS</h3>
   <ol>
-    <li>Scarica <code>Cpython_interpreter_macos.dmg</code>.</li>
-    <li>Doppio click sul disco, poi doppio click su <code>Cpython_interpreter_macos.app</code> <strong>una volta</strong>.</li>
-    <li>L’app si copia da sola in Applicazioni, attiva il demone e il comando <code>cpy</code>, e stacca il disco.</li>
-    <li>Se macOS blocca: Impostazioni → Privacy e sicurezza → Apri comunque, poi ritenta.</li>
+    <li data-i18n-html="tut.inst.m1">Scarica <code>Cpython_interpreter_macos.dmg</code>.</li>
+    <li data-i18n-html="tut.inst.m2">Doppio click sul disco, poi doppio click su <code>Cpython_interpreter_macos.app</code> <strong>una volta</strong>.</li>
+    <li data-i18n-html="tut.inst.m3">L’app si copia da sola in Applicazioni, attiva il demone e il comando <code>cpy</code>, e stacca il disco.</li>
+    <li data-i18n="tut.inst.m4">Se macOS blocca: Impostazioni → Privacy e sicurezza → Apri comunque, poi ritenta.</li>
   </ol>
-  <p class="note">Alcuni antivirus segnalano l’exe PyInstaller come sospetto. È un falso positivo noto: il codice è pubblico, licenza MIT. Dettagli in <a href="https://github.com/andreaaccardo2015-creator/c-python/blob/main/ANTIVIRUS.md">ANTIVIRUS.md</a>.</p>
+  <p class="note" data-i18n-html="tut.inst.av">Alcuni antivirus segnalano l’exe PyInstaller come sospetto. È un falso positivo noto: il codice è pubblico, licenza MIT. Dettagli in <a href="https://github.com/andreaaccardo2015-creator/c-python/blob/main/ANTIVIRUS.md">ANTIVIRUS.md</a>.</p>
 
-  <h2 id="primo-programma">Primo programma</h2>
-  <p>Crea <code>ciao.cp</code> e lancialo con <code>cpy run ciao.cp</code>.</p>
+  <h2 id="primo-programma" data-i18n="tut.first.h">Primo programma</h2>
+  <p data-i18n-html="tut.first.p">Crea <code>ciao.cp</code> e lancialo con <code>cpy run ciao.cp</code>.</p>
 <pre><code><span class="k">import</span> time
 
 <span class="c">// Il primo commento sta sempre sotto gli import</span>
@@ -82,13 +83,13 @@ print.log(<span class="s">"ciao da C Python"</span>)
 print.output(<span class="s">"piacere,"</span>, nome)
 time.breakcode(<span class="n">1</span>)</code></pre>
   <ul>
-    <li><code>print.log("...")</code> scrive un messaggio: dentro va solo testo, non chiamate a funzione.</li>
-    <li><code>print.output(...)</code> è quello che mostra <strong>risultati e valori</strong>: <code>print.output("il totale fa:", a + b)</code>.</li>
-    <li><code>getinput("testo")</code> chiede una stringa. Per un numero ci vuole sempre <code>+ f</code>: <code>float n getinput("numero" + f)</code>.</li>
-    <li><code>time.breakcode(1)</code> aspetta un secondo (alias: <code>time.sleep</code>).</li>
+    <li data-i18n-html="tut.first.l1"><code>print.log("...")</code> scrive un messaggio: dentro va solo testo, non chiamate a funzione.</li>
+    <li data-i18n-html="tut.first.l2"><code>print.output(...)</code> è quello che mostra <strong>risultati e valori</strong>: <code>print.output("il totale fa:", a + b)</code>.</li>
+    <li data-i18n-html="tut.first.l3"><code>getinput("testo")</code> chiede una stringa. Per un numero ci vuole sempre <code>+ f</code>: <code>float n getinput("numero" + f)</code>.</li>
+    <li data-i18n-html="tut.first.l4"><code>time.breakcode(1)</code> aspetta un secondo (alias: <code>time.sleep</code>).</li>
   </ul>
   <div class="warn">
-    <p><strong>Le due print non sono la stessa cosa.</strong></p>
+    <p><strong data-i18n="tut.print.warn">Le due print non sono la stessa cosa.</strong></p>
 <pre><code><span class="c">// no: la funzione non si chiama dentro print.log</span>
 print.log(add(<span class="n">2</span>, <span class="n">5</span>))
 
@@ -97,9 +98,9 @@ print.log(add(<span class="n">2</span>, <span class="n">5</span>))
 print.output(<span class="s">"2 + 5 fa:"</span>, somma)</code></pre>
   </div>
 
-  <h2 id="sintassi">Sintassi</h2>
-  <h3>Tipi e variabili</h3>
-  <p>Per dichiarare una variabile scrivi <strong>tipo, nome e valore</strong>: l’<code>=</code> non serve. Un valore <code>float</code> vuole sempre la <code>f</code> finale, anche quando è tondo.</p>
+  <h2 id="sintassi" data-i18n="tut.syn.h">Sintassi</h2>
+  <h3 data-i18n="tut.syn.types">Tipi e variabili</h3>
+  <p data-i18n-html="tut.syn.p">Per dichiarare una variabile scrivi <strong>tipo, nome e valore</strong>: l’<code>=</code> non serve. Un valore <code>float</code> vuole sempre la <code>f</code> finale, anche quando è tondo.</p>
 <pre><code><span class="t">int</span> vite <span class="n">3</span>
 <span class="t">float</span> velocita <span class="n">2.5f</span>
 <span class="t">float</span> gravita <span class="n">90f</span>
@@ -111,21 +112,21 @@ print.output(<span class="s">"2 + 5 fa:"</span>, somma)</code></pre>
 vite += <span class="n">1</span>
 velocita *= <span class="n">2</span></code></pre>
   <div class="warn">
-    <p><strong>Errori tipici.</strong></p>
+    <p><strong data-i18n="tut.syn.err">Errori tipici.</strong></p>
 <pre><code><span class="t">float</span> velocita = <span class="n">2.5</span>   <span class="c">// = di troppo, e manca la f</span>
 <span class="t">float</span> velocita <span class="n">2.5f</span>    <span class="c">// così</span></code></pre>
   </div>
-  <p>Operatori: <code>+</code> <code>-</code> <code>*</code> <code>/</code> <code>%</code>, confronti <code>== != &lt; &gt; &lt;= &gt;=</code>, assegnamenti <code>+= -= *= /=</code>, logica <code>and</code> <code>or</code> <code>not</code>. Costanti: <code>true</code>, <code>false</code>, <code>null</code>. I colori si scrivono <code>#FFB74D</code>.</p>
+  <p data-i18n-html="tut.syn.ops">Operatori: <code>+</code> <code>-</code> <code>*</code> <code>/</code> <code>%</code>, confronti <code>== != &lt; &gt; &lt;= &gt;=</code>, assegnamenti <code>+= -= *= /=</code>, logica <code>and</code> <code>or</code> <code>not</code>. Costanti: <code>true</code>, <code>false</code>, <code>null</code>. I colori si scrivono <code>#FFB74D</code>.</p>
 
-  <h3>Chiedere dati a chi gioca</h3>
-  <p>Una stringa si chiede liscia. Un numero si chiede sempre con <code>+ f</code> attaccato al testo della domanda, altrimenti quello che torna è testo e non ci fai i conti.</p>
+  <h3 data-i18n="tut.in.h">Chiedere dati a chi gioca</h3>
+  <p data-i18n-html="tut.in.p">Una stringa si chiede liscia. Un numero si chiede sempre con <code>+ f</code> attaccato al testo della domanda, altrimenti quello che torna è testo e non ci fai i conti.</p>
 <pre><code><span class="t">string</span> nome getinput(<span class="s">"come ti chiami?"</span>)
 <span class="t">float</span> numero1 getinput(<span class="s">"qual è il primo numero?"</span> + f)
 <span class="t">float</span> numero2 getinput(<span class="s">"qual è il secondo numero?"</span> + f)
 print.output(<span class="s">"la tua operazione fa:"</span>, numero1 + numero2)</code></pre>
 
-  <h3>If, while, for</h3>
-  <p>Le graffe sono consigliate. L’<code>if</code> vuole la condizione tra parentesi. Un solo ramo: puoi omettere le graffe se il corpo è una riga.</p>
+  <h3 data-i18n="tut.if.h">If, while, for</h3>
+  <p data-i18n-html="tut.if.p">Le graffe sono consigliate. L’<code>if</code> vuole la condizione tra parentesi. Un solo ramo: puoi omettere le graffe se il corpo è una riga.</p>
 <pre><code><span class="k">if</span> (vite &lt;= <span class="n">0</span>) {
     print.log(<span class="s">"game over"</span>)
 } <span class="k">else</span> {
@@ -141,12 +142,12 @@ print.output(<span class="s">"la tua operazione fa:"</span>, numero1 + numero2)<
 <span class="k">for</span> n <span class="k">in</span> range(<span class="n">5</span>) {
     print.output(<span class="s">"n:"</span>, n)
 }</code></pre>
-  <p>Dentro i cicli: <code>break</code> e <code>continue</code>.</p>
+  <p data-i18n-html="tut.if.loop">Dentro i cicli: <code>break</code> e <code>continue</code>.</p>
 
-  <h3>Nomi</h3>
-  <p>Maiuscole e minuscole non contano: <code>Player</code> e <code>player</code> sono lo stesso nome. Vale anche per <code>trasform</code> / <code>transform</code>.</p>
+  <h3 data-i18n="tut.names.h">Nomi</h3>
+  <p data-i18n-html="tut.names.p">Maiuscole e minuscole non contano: <code>Player</code> e <code>player</code> sono lo stesso nome. Vale anche per <code>trasform</code> / <code>transform</code>.</p>
 
-  <h2 id="funzioni">Funzioni e classi</h2>
+  <h2 id="funzioni" data-i18n="tut.fun.h">Funzioni e classi</h2>
 <pre><code><span class="k">fun</span> add(<span class="t">int</span> a, <span class="t">int</span> b)
     <span class="k">return</span> <span class="t">int</span> a + b
 
@@ -158,7 +159,7 @@ print.output(<span class="s">"la tua operazione fa:"</span>, numero1 + numero2)<
 <span class="t">int</span> somma add(<span class="n">2</span>, <span class="n">5</span>)
 print.output(<span class="s">"2 + 5 fa:"</span>, somma)
 saluta(<span class="s">"andrea"</span>)</code></pre>
-  <p>Le funzioni solo numeriche possono essere accelerate dal JIT LLVM (<code>cpython --jit</code>, attivo di default).</p>
+  <p data-i18n-html="tut.fun.p">Le funzioni solo numeriche possono essere accelerate dal JIT LLVM (<code>cpython --jit</code>, attivo di default).</p>
 <pre><code><span class="k">class</span> Punto {
     <span class="k">fun</span> Punto(<span class="t">float</span> x, <span class="t">float</span> y) {
         this.x = x
@@ -166,23 +167,23 @@ saluta(<span class="s">"andrea"</span>)</code></pre>
     }
 }</code></pre>
 
-  <h2 id="librerie">Librerie</h2>
-  <p>Si importano in cima al file. I commenti vanno <strong>sotto</strong> gli import.</p>
+  <h2 id="librerie" data-i18n="tut.lib.h">Librerie</h2>
+  <p data-i18n-html="tut.lib.p">Si importano in cima al file. I commenti vanno <strong>sotto</strong> gli import.</p>
   <table>
-    <tr><th>Modulo</th><th>A cosa serve</th><th>Esempi</th></tr>
-    <tr><td><code>time</code></td><td>Pause e orologi</td><td><code>breakcode</code>, <code>sleep</code>, <code>now</code>, <code>clock</code></td></tr>
-    <tr><td><code>math</code></td><td>Matematica</td><td><code>clamp</code>, <code>sin</code>, <code>cos</code>, <code>lerp</code>, <code>dist</code>, <code>sqrt</code></td></tr>
-    <tr><td><code>random</code></td><td>Casuale</td><td><code>int(a, b)</code>, <code>float(a, b)</code>, <code>choice</code>, <code>shuffle</code></td></tr>
-    <tr><td><code>file</code></td><td>File di testo</td><td><code>read</code>, <code>write</code>, <code>append</code>, <code>exists</code>, <code>lines</code></td></tr>
+    <tr><th data-i18n="tut.lib.th1">Modulo</th><th data-i18n="tut.lib.th2">A cosa serve</th><th data-i18n="tut.lib.th3">Esempi</th></tr>
+    <tr><td><code>time</code></td><td data-i18n="tut.lib.time">Pause e orologi</td><td><code>breakcode</code>, <code>sleep</code>, <code>now</code>, <code>clock</code></td></tr>
+    <tr><td><code>math</code></td><td data-i18n="tut.lib.math">Matematica</td><td><code>clamp</code>, <code>sin</code>, <code>cos</code>, <code>lerp</code>, <code>dist</code>, <code>sqrt</code></td></tr>
+    <tr><td><code>random</code></td><td data-i18n="tut.lib.rand">Casuale</td><td><code>int(a, b)</code>, <code>float(a, b)</code>, <code>choice</code>, <code>shuffle</code></td></tr>
+    <tr><td><code>file</code></td><td data-i18n="tut.lib.file">File di testo</td><td><code>read</code>, <code>write</code>, <code>append</code>, <code>exists</code>, <code>lines</code></td></tr>
     <tr><td><code>json</code></td><td>JSON</td><td><code>encode</code>, <code>decode</code>, <code>load</code>, <code>save</code></td></tr>
-    <tr><td><code>audio</code></td><td>Suoni</td><td><code>play</code>, <code>music</code>, <code>stop_music</code></td></tr>
-    <tr><td><code>sdgame</code></td><td>Gioco 2D a mano</td><td>finestra, tasti, rettangoli, testo</td></tr>
-    <tr><td><code>finityengine</code></td><td>Motore / editor</td><td>actor, input, fisica, animazioni</td></tr>
+    <tr><td><code>audio</code></td><td data-i18n="tut.lib.audio">Suoni</td><td><code>play</code>, <code>music</code>, <code>stop_music</code></td></tr>
+    <tr><td><code>sdgame</code></td><td data-i18n="tut.lib.sd">Gioco 2D a mano</td><td data-i18n="tut.lib.sd.ex">finestra, tasti, rettangoli, testo</td></tr>
+    <tr><td><code>finityengine</code></td><td data-i18n="tut.lib.fe">Motore / editor</td><td data-i18n="tut.lib.fe.ex">actor, input, fisica, animazioni</td></tr>
   </table>
-  <p>Funzioni sempre disponibili, senza import: <code>print</code>, <code>getinput</code>, <code>getcollision</code>, <code>animation</code>, <code>rigidbody</code>, <code>range</code>, <code>len</code>, <code>str</code>, <code>int</code>, <code>float</code>, <code>bool</code>.</p>
+  <p data-i18n-html="tut.lib.always">Funzioni sempre disponibili, senza import: <code>print</code>, <code>getinput</code>, <code>getcollision</code>, <code>animation</code>, <code>rigidbody</code>, <code>range</code>, <code>len</code>, <code>str</code>, <code>int</code>, <code>float</code>, <code>bool</code>.</p>
 
-  <h2 id="sdgame">Giochi 2D · sdgame</h2>
-  <p>Per un gioco 2D senza editor: apri la finestra tu, disegni ogni frame, chiudi alla fine.</p>
+  <h2 id="sdgame" data-i18n="tut.sd.h">Giochi 2D · sdgame</h2>
+  <p data-i18n="tut.sd.p">Per un gioco 2D senza editor: apri la finestra tu, disegni ogni frame, chiudi alla fine.</p>
 <pre><code><span class="k">import</span> sdgame
 <span class="k">import</span> math
 
@@ -203,14 +204,14 @@ sdgame.init(<span class="n">640</span>, <span class="n">480</span>, <span class=
     sdgame.flip()
 }
 sdgame.quit()</code></pre>
-  <p>Altri disegni: <code>circle</code>, <code>line</code>, <code>image</code>. Input: <code>getkey</code> (tenuto), <code>getkeydown</code> (appena premuto), <code>mouse_x</code>, <code>mouse_y</code>, <code>mouse_button</code>.</p>
+  <p data-i18n-html="tut.sd.more">Altri disegni: <code>circle</code>, <code>line</code>, <code>image</code>. Input: <code>getkey</code> (tenuto), <code>getkeydown</code> (appena premuto), <code>mouse_x</code>, <code>mouse_y</code>, <code>mouse_button</code>.</p>
 
-  <h2 id="finity">FinityEngine</h2>
-  <p>Quando lo script vive nell’editor, la finestra la crea il motore. Non serve <code>screen.create</code>. Ogni script è figlio di un solo modello, tranne quelli agganciati all’intera scena.</p>
+  <h2 id="finity" data-i18n="tut.fe.h">FinityEngine</h2>
+  <p data-i18n-html="tut.fe.p">Quando lo script vive nell’editor, la finestra la crea il motore. Non serve <code>screen.create</code>. Ogni script è figlio di un solo modello, tranne quelli agganciati all’intera scena.</p>
   <ul>
-    <li>Figlio del modello: non dichiari <code>actor</code>. <code>move</code>, <code>animation</code> e <code>getcollision</code> parlano di “questo” modello.</li>
-    <li>Figlio della scena: i modelli si nominano per intero (<code>player.rb...</code>).</li>
-    <li>Un solo <code>on start</code>, un solo <code>on update</code>, un solo <code>on fixedupdate</code> per script. Due uguali sono un errore.</li>
+    <li data-i18n-html="tut.fe.l1">Figlio del modello: non dichiari <code>actor</code>. <code>move</code>, <code>animation</code> e <code>getcollision</code> parlano di “questo” modello.</li>
+    <li data-i18n-html="tut.fe.l2">Figlio della scena: i modelli si nominano per intero (<code>player.rb...</code>).</li>
+    <li data-i18n-html="tut.fe.l3">Un solo <code>on start</code>, un solo <code>on update</code>, un solo <code>on fixedupdate</code> per script. Due uguali sono un errore.</li>
   </ul>
 <pre><code><span class="k">import</span> finityengine
 
@@ -233,69 +234,69 @@ sdgame.quit()</code></pre>
         animation.start(<span class="s">"colpito"</span>)
     }
 }</code></pre>
-  <p>Fuori dall’editor, in uno script eseguibile da solo, dichiari <code>actor player</code> e alla fine chiami <code>finityengine.Run()</code>.</p>
-  <p>Input: <code>finityengine.Input.GetKey("space")</code> (tenuto), <code>GetKeyDown("space")</code> (una volta). Tempo: <code>finityengine.Time.deltaTime</code> (frame) e <code>fixedDeltaTime</code> (passo fisso).</p>
+  <p data-i18n-html="tut.fe.out">Fuori dall’editor, in uno script eseguibile da solo, dichiari <code>actor player</code> e alla fine chiami <code>finityengine.Run()</code>.</p>
+  <p data-i18n-html="tut.fe.in">Input: <code>finityengine.Input.GetKey("space")</code> (tenuto), <code>GetKeyDown("space")</code> (una volta). Tempo: <code>finityengine.Time.deltaTime</code> (frame) e <code>fixedDeltaTime</code> (passo fisso).</p>
 
-  <h2 id="animazioni">Animazioni e collisioni</h2>
-  <p>Le clip le assegna l’editor al modello. Lo script le accende e le spegne per nome.</p>
+  <h2 id="animazioni" data-i18n="tut.an.h">Animazioni e collisioni</h2>
+  <p data-i18n="tut.an.p">Le clip le assegna l’editor al modello. Lo script le accende e le spegne per nome.</p>
 <pre><code>animation.start(<span class="s">"gira"</span>)
 <span class="k">if</span> (animation.time <span class="s">"2"</span>) {
     animation.stop(<span class="s">"gira"</span>)
 }</code></pre>
-  <p><code>animation.time "2"</code> è vera quando l’animazione in corso ha raggiunto i 2 secondi. <code>getcollision "muro"</code> è vera se questo modello tocca l’attore chiamato muro. Le parentesi nell’<code>if</code> ci sono, ma la chiamata può stare senza: <code>if (getcollision "muro") { }</code>.</p>
+  <p data-i18n-html="tut.an.more"><code>animation.time "2"</code> è vera quando l’animazione in corso ha raggiunto i 2 secondi. <code>getcollision "muro"</code> è vera se questo modello tocca l’attore chiamato muro. Le parentesi nell’<code>if</code> ci sono, ma la chiamata può stare senza: <code>if (getcollision "muro") { }</code>.</p>
 
-  <h2 id="rigidbody">Rigidbody e parti del rig</h2>
-  <p>Per usare la fisica da script la dichiari tu, anche se lo script è già figlio del modello:</p>
+  <h2 id="rigidbody" data-i18n="tut.rb.h">Rigidbody e parti del rig</h2>
+  <p data-i18n="tut.rb.p">Per usare la fisica da script la dichiari tu, anche se lo script è già figlio del modello:</p>
 <pre><code>rigidbody.call(<span class="s">"RB"</span>)
 
 <span class="k">on</span> start {
     player.rb.trasform.part(<span class="s">"braccio"</span>, y += <span class="n">5</span>)
 }</code></pre>
   <ul>
-    <li><code>y += 5</code> sposta di 5 sull’asse y.</li>
-    <li><code>y = 0</code> va a una posizione assoluta.</li>
-    <li>Ultimo numero opzionale: durata in secondi, con la <code>f</code>: <code>part("testa", y += 90, x -= 10, 0.5f)</code>.</li>
+    <li data-i18n-html="tut.rb.l1"><code>y += 5</code> sposta di 5 sull’asse y.</li>
+    <li data-i18n-html="tut.rb.l2"><code>y = 0</code> va a una posizione assoluta.</li>
+    <li data-i18n-html="tut.rb.l3">Ultimo numero opzionale: durata in secondi, con la <code>f</code>: <code>part("testa", y += 90, x -= 10, 0.5f)</code>.</li>
   </ul>
-  <p>Se lanci lo script dall’editor con <code>--ipc-stdio</code>, C Python chiede a FinityEngine l’elenco dei componenti e delle parti. Se manca <code>rigidbody</code> o la parte <code>"braccio"</code>, l’errore arriva subito, con file, riga e colonna.</p>
+  <p data-i18n-html="tut.rb.ipc">Se lanci lo script dall’editor con <code>--ipc-stdio</code>, C Python chiede a FinityEngine l’elenco dei componenti e delle parti. Se manca <code>rigidbody</code> o la parte <code>"braccio"</code>, l’errore arriva subito, con file, riga e colonna.</p>
 
-  <h2 id="cli">Comandi</h2>
+  <h2 id="cli" data-i18n="tut.cli.h">Comandi</h2>
 <pre><code>cpy version
 cpy run gioco.cp
 python -m cpython gioco.cp
 python -m cpython --ipc-stdio gioco.cp
 python -m cpython --no-jit gioco.cp</code></pre>
-  <p><code>--ipc-stdio</code> è il modo editor: handshake <code>ready</code> → <code>bindings</code>, poi convalida di actor, componenti e parti del rig. Senza quel flag lo script gira da solo, senza quella verifica.</p>
+  <p data-i18n-html="tut.cli.p"><code>--ipc-stdio</code> è il modo editor: handshake <code>ready</code> → <code>bindings</code>, poi convalida di actor, componenti e parti del rig. Senza quel flag lo script gira da solo, senza quella verifica.</p>
 
-  <h2 id="riferimento">Riferimento rapido</h2>
+  <h2 id="riferimento" data-i18n="tut.ref.h">Riferimento rapido</h2>
   <table>
-    <tr><th>Scrivi</th><th>Significa</th></tr>
-    <tr><td><code>import nome</code></td><td>Carica un modulo. I commenti vengono dopo.</td></tr>
-    <tr><td><code>int x 1</code></td><td>Variabile: tipo, nome, valore. Niente <code>=</code>.</td></tr>
-    <tr><td><code>float v 2.5f</code></td><td>Un float vuole sempre la <code>f</code> finale.</td></tr>
-    <tr><td><code>print.log("ciao")</code></td><td>Solo un messaggio di testo, niente funzioni dentro.</td></tr>
-    <tr><td><code>print.output("fa:", n)</code></td><td>Mostra risultati e valori.</td></tr>
-    <tr><td><code>getinput("n?" + f)</code></td><td>Chiede un numero. Senza <code>+ f</code> torna testo.</td></tr>
-    <tr><td><code>fun nome(int a)</code></td><td>Funzione. <code>return</code> per uscire.</td></tr>
-    <tr><td><code>class Nome</code></td><td>Classe. Dentro usi <code>this</code>.</td></tr>
-    <tr><td><code>actor player</code></td><td>Dichiara un attore (script standalone / scena).</td></tr>
-    <tr><td><code>on start { }</code></td><td>Una volta all’avvio. Max uno per script.</td></tr>
-    <tr><td><code>on update { }</code></td><td>Ogni frame, dt variabile.</td></tr>
-    <tr><td><code>on fixedupdate { }</code></td><td>Passo fisso 1/60, per il movimento.</td></tr>
-    <tr><td><code>if (getcollision "muro")</code></td><td>Tocco quell’altro modello?</td></tr>
-    <tr><td><code>animation.start("cammina")</code></td><td>Avvia una clip del modello.</td></tr>
-    <tr><td><code>if (animation.time "2")</code></td><td>La clip è arrivata a 2 secondi?</td></tr>
-    <tr><td><code>rigidbody.call("RB")</code></td><td>Collega il rigidbody come <code>.rb</code>.</td></tr>
-    <tr><td><code>part("braccio", y += 5)</code></td><td>Muove una parte del rig.</td></tr>
-    <tr><td><code>x 380; y 280;</code></td><td>Posizione (dopo <code>==</code> su transform.position).</td></tr>
+    <tr><th data-i18n="tut.ref.th1">Scrivi</th><th data-i18n="tut.ref.th2">Significa</th></tr>
+    <tr><td><code>import nome</code></td><td data-i18n="tut.ref.import">Carica un modulo. I commenti vengono dopo.</td></tr>
+    <tr><td><code>int x 1</code></td><td data-i18n-html="tut.ref.int">Variabile: tipo, nome, valore. Niente <code>=</code>.</td></tr>
+    <tr><td><code>float v 2.5f</code></td><td data-i18n-html="tut.ref.float">Un float vuole sempre la <code>f</code> finale.</td></tr>
+    <tr><td><code>print.log("ciao")</code></td><td data-i18n="tut.ref.log">Solo un messaggio di testo, niente funzioni dentro.</td></tr>
+    <tr><td><code>print.output("fa:", n)</code></td><td data-i18n="tut.ref.out">Mostra risultati e valori.</td></tr>
+    <tr><td><code>getinput("n?" + f)</code></td><td data-i18n-html="tut.ref.in">Chiede un numero. Senza <code>+ f</code> torna testo.</td></tr>
+    <tr><td><code>fun nome(int a)</code></td><td data-i18n-html="tut.ref.fun">Funzione. <code>return</code> per uscire.</td></tr>
+    <tr><td><code>class Nome</code></td><td data-i18n-html="tut.ref.class">Classe. Dentro usi <code>this</code>.</td></tr>
+    <tr><td><code>actor player</code></td><td data-i18n="tut.ref.actor">Dichiara un attore (script standalone / scena).</td></tr>
+    <tr><td><code>on start { }</code></td><td data-i18n="tut.ref.start">Una volta all’avvio. Max uno per script.</td></tr>
+    <tr><td><code>on update { }</code></td><td data-i18n="tut.ref.upd">Ogni frame, dt variabile.</td></tr>
+    <tr><td><code>on fixedupdate { }</code></td><td data-i18n="tut.ref.fix">Passo fisso 1/60, per il movimento.</td></tr>
+    <tr><td><code>if (getcollision "muro")</code></td><td data-i18n="tut.ref.col">Tocco quell’altro modello?</td></tr>
+    <tr><td><code>animation.start("cammina")</code></td><td data-i18n="tut.ref.an">Avvia una clip del modello.</td></tr>
+    <tr><td><code>if (animation.time "2")</code></td><td data-i18n="tut.ref.time">La clip è arrivata a 2 secondi?</td></tr>
+    <tr><td><code>rigidbody.call("RB")</code></td><td data-i18n-html="tut.ref.rb">Collega il rigidbody come <code>.rb</code>.</td></tr>
+    <tr><td><code>part("braccio", y += 5)</code></td><td data-i18n="tut.ref.part">Muove una parte del rig.</td></tr>
+    <tr><td><code>x 380; y 280;</code></td><td data-i18n-html="tut.ref.pos">Posizione (dopo <code>==</code> su transform.position).</td></tr>
   </table>
-  <p class="note">Esempi nel repo sorgente: <a href="https://github.com/andreaaccardo2015-creator/c-python/tree/main/esempi">esempi/</a> — calcolatrice, sdgame, FinityEngine, animazioni, rigidbody.</p>
+  <p class="note" data-i18n-html="tut.ex">Esempi nel repo sorgente: <a href="https://github.com/andreaaccardo2015-creator/c-python/tree/main/esempi">esempi/</a> — calcolatrice, sdgame, FinityEngine, animazioni, rigidbody.</p>
 
   <footer class="site">
-    <span>C Python v0.3.5 · licenza MIT</span>
+    <span data-i18n="tut.foot">C Python v0.3.5 · licenza MIT</span>
     <span>
       <a href="download.html">download</a> ·
       <a href="feedback.html">feedback</a> ·
-      <a href="https://github.com/andreaaccardo2015-creator/c-python">sorgenti</a>
+      <a href="https://github.com/andreaaccardo2015-creator/c-python" data-i18n="nav.source">sorgenti</a>
     </span>
   </footer>
 </main>
@@ -313,5 +314,6 @@ python -m cpython --no-jit gioco.cp</code></pre>
   document.addEventListener("scroll", setActive, { passive: true });
   setActive();
 </script>
+<script src="js/app.js"></script>
 </body>
 </html>
