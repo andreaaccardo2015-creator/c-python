@@ -157,26 +157,51 @@
 <span class="c">// Il primo commento sta sempre sotto gli import</span>
 
 print.log(<span class="s">"ciao da C Python"</span>)
-string nome = getinput(<span class="s">"come ti chiami? "</span>)
+<span class="t">string</span> nome getinput(<span class="s">"come ti chiami? "</span>)
 print.output(<span class="s">"piacere,"</span>, nome)
 time.breakcode(<span class="n">1</span>)</code></pre>
   <ul>
-    <li><code>print.log(...)</code> scrive una riga.</li>
-    <li><code>print.output(...)</code> scrive più valori sulla stessa riga.</li>
-    <li><code>getinput("testo")</code> chiede una stringa. Aggiungi <code>+ f</code> per un decimale: <code>float n = getinput("n?" + f)</code>.</li>
+    <li><code>print.log("...")</code> scrive un messaggio: dentro va solo testo, non chiamate a funzione.</li>
+    <li><code>print.output(...)</code> è quello che mostra <strong>risultati e valori</strong>: <code>print.output("il totale fa:", a + b)</code>.</li>
+    <li><code>getinput("testo")</code> chiede una stringa. Per un numero ci vuole sempre <code>+ f</code>: <code>float n getinput("numero" + f)</code>.</li>
     <li><code>time.breakcode(1)</code> aspetta un secondo (alias: <code>time.sleep</code>).</li>
   </ul>
+  <div class="warn">
+    <p><strong>Le due print non sono la stessa cosa.</strong></p>
+<pre><code><span class="c">// no: la funzione non si chiama dentro print.log</span>
+print.log(add(<span class="n">2</span>, <span class="n">5</span>))
+
+<span class="c">// sì: il risultato prima in una variabile, poi print.output</span>
+<span class="t">int</span> somma add(<span class="n">2</span>, <span class="n">5</span>)
+print.output(<span class="s">"2 + 5 fa:"</span>, somma)</code></pre>
+  </div>
 
   <h2 id="sintassi">Sintassi</h2>
   <h3>Tipi e variabili</h3>
-<pre><code><span class="t">int</span> vite = <span class="n">3</span>
-<span class="t">float</span> velocita = <span class="n">2.5</span>
-<span class="t">string</span> titolo = <span class="s">"livello 1"</span>
-<span class="t">bool</span> vivo = <span class="k">true</span>
-<span class="t">list</span> numeri = [<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>]
+  <p>Per dichiarare una variabile scrivi <strong>tipo, nome e valore</strong>: l’<code>=</code> non serve. Un valore <code>float</code> vuole sempre la <code>f</code> finale, anche quando è tondo.</p>
+<pre><code><span class="t">int</span> vite <span class="n">3</span>
+<span class="t">float</span> velocita <span class="n">2.5f</span>
+<span class="t">float</span> gravita <span class="n">90f</span>
+<span class="t">string</span> titolo <span class="s">"livello 1"</span>
+<span class="t">bool</span> vivo <span class="k">true</span>
+<span class="t">list</span> numeri [<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>]
+
+<span class="c">// dopo, per cambiare un valore già dichiarato</span>
 vite += <span class="n">1</span>
 velocita *= <span class="n">2</span></code></pre>
+  <div class="warn">
+    <p><strong>Errori tipici.</strong></p>
+<pre><code><span class="t">float</span> velocita = <span class="n">2.5</span>   <span class="c">// = di troppo, e manca la f</span>
+<span class="t">float</span> velocita <span class="n">2.5f</span>    <span class="c">// così</span></code></pre>
+  </div>
   <p>Operatori: <code>+</code> <code>-</code> <code>*</code> <code>/</code> <code>%</code>, confronti <code>== != &lt; &gt; &lt;= &gt;=</code>, assegnamenti <code>+= -= *= /=</code>, logica <code>and</code> <code>or</code> <code>not</code>. Costanti: <code>true</code>, <code>false</code>, <code>null</code>. I colori si scrivono <code>#FFB74D</code>.</p>
+
+  <h3>Chiedere dati a chi gioca</h3>
+  <p>Una stringa si chiede liscia. Un numero si chiede sempre con <code>+ f</code> attaccato al testo della domanda, altrimenti quello che torna è testo e non ci fai i conti.</p>
+<pre><code><span class="t">string</span> nome getinput(<span class="s">"come ti chiami?"</span>)
+<span class="t">float</span> numero1 getinput(<span class="s">"qual è il primo numero?"</span> + f)
+<span class="t">float</span> numero2 getinput(<span class="s">"qual è il secondo numero?"</span> + f)
+print.output(<span class="s">"la tua operazione fa:"</span>, numero1 + numero2)</code></pre>
 
   <h3>If, while, for</h3>
   <p>Le graffe sono consigliate. L’<code>if</code> vuole la condizione tra parentesi. Un solo ramo: puoi omettere le graffe se il corpo è una riga.</p>
@@ -186,14 +211,14 @@ velocita *= <span class="n">2</span></code></pre>
     print.log(<span class="s">"ancora in gioco"</span>)
 }
 
-<span class="t">int</span> i = <span class="n">0</span>
+<span class="t">int</span> i <span class="n">0</span>
 <span class="k">while</span> (i &lt; <span class="n">3</span>) {
-    print.log(i)
+    print.output(<span class="s">"giro numero:"</span>, i)
     i += <span class="n">1</span>
 }
 
 <span class="k">for</span> n <span class="k">in</span> range(<span class="n">5</span>) {
-    print.log(n)
+    print.output(<span class="s">"n:"</span>, n)
 }</code></pre>
   <p>Dentro i cicli: <code>break</code> e <code>continue</code>.</p>
 
@@ -205,10 +230,13 @@ velocita *= <span class="n">2</span></code></pre>
     <span class="k">return</span> <span class="t">int</span> a + b
 
 <span class="k">fun</span> saluta(<span class="t">string</span> nome) {
-    print.log(<span class="s">"ciao"</span>, nome)
+    print.log(<span class="s">"un saluto sta per arrivare"</span>)
+    print.output(<span class="s">"ciao"</span>, nome)
 }
 
-print.log(add(<span class="n">2</span>, <span class="n">5</span>))</code></pre>
+<span class="t">int</span> somma add(<span class="n">2</span>, <span class="n">5</span>)
+print.output(<span class="s">"2 + 5 fa:"</span>, somma)
+saluta(<span class="s">"andrea"</span>)</code></pre>
   <p>Le funzioni solo numeriche possono essere accelerate dal JIT LLVM (<code>cpython --jit</code>, attivo di default).</p>
 <pre><code><span class="k">class</span> Punto {
     <span class="k">fun</span> Punto(<span class="t">float</span> x, <span class="t">float</span> y) {
@@ -240,8 +268,8 @@ print.log(add(<span class="n">2</span>, <span class="n">5</span>))</code></pre>
 <span class="c">// Quadrato che si muove con WASD</span>
 
 sdgame.init(<span class="n">640</span>, <span class="n">480</span>, <span class="s">"demo"</span>)
-<span class="t">float</span> x = <span class="n">100</span>
-<span class="t">float</span> y = <span class="n">100</span>
+<span class="t">float</span> x <span class="n">100f</span>
+<span class="t">float</span> y <span class="n">100f</span>
 
 <span class="k">while</span> (sdgame.is_running()) {
     sdgame.tick(<span class="n">60</span>)
@@ -273,7 +301,7 @@ sdgame.quit()</code></pre>
 
 <span class="k">on</span> fixedupdate {
     <span class="c">// dt è sempre 1/60: il movimento non dipende dagli FPS</span>
-    <span class="t">float</span> speed = <span class="n">240</span>
+    <span class="t">float</span> speed <span class="n">240f</span>
     <span class="k">if</span> (finityengine.Input.GetKey(<span class="s">"d"</span>)) {
         move(speed * dt, <span class="n">0</span>)
     }
@@ -305,7 +333,7 @@ sdgame.quit()</code></pre>
   <ul>
     <li><code>y += 5</code> sposta di 5 sull’asse y.</li>
     <li><code>y = 0</code> va a una posizione assoluta.</li>
-    <li>Ultimo numero opzionale = durata in secondi: <code>part("testa", y += 90, x -= 10, 0.5)</code>.</li>
+    <li>Ultimo numero opzionale: durata in secondi, con la <code>f</code>: <code>part("testa", y += 90, x -= 10, 0.5f)</code>.</li>
   </ul>
   <p>Se lanci lo script dall’editor con <code>--ipc-stdio</code>, C Python chiede a FinityEngine l’elenco dei componenti e delle parti. Se manca <code>rigidbody</code> o la parte <code>"braccio"</code>, l’errore arriva subito, con file, riga e colonna.</p>
 
@@ -321,7 +349,11 @@ python -m cpython --no-jit gioco.cp</code></pre>
   <table>
     <tr><th>Scrivi</th><th>Significa</th></tr>
     <tr><td><code>import nome</code></td><td>Carica un modulo. I commenti vengono dopo.</td></tr>
-    <tr><td><code>int x = 1</code></td><td>Variabile tipizzata.</td></tr>
+    <tr><td><code>int x 1</code></td><td>Variabile: tipo, nome, valore. Niente <code>=</code>.</td></tr>
+    <tr><td><code>float v 2.5f</code></td><td>Un float vuole sempre la <code>f</code> finale.</td></tr>
+    <tr><td><code>print.log("ciao")</code></td><td>Solo un messaggio di testo, niente funzioni dentro.</td></tr>
+    <tr><td><code>print.output("fa:", n)</code></td><td>Mostra risultati e valori.</td></tr>
+    <tr><td><code>getinput("n?" + f)</code></td><td>Chiede un numero. Senza <code>+ f</code> torna testo.</td></tr>
     <tr><td><code>fun nome(int a)</code></td><td>Funzione. <code>return</code> per uscire.</td></tr>
     <tr><td><code>class Nome</code></td><td>Classe. Dentro usi <code>this</code>.</td></tr>
     <tr><td><code>actor player</code></td><td>Dichiara un attore (script standalone / scena).</td></tr>

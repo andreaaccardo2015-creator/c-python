@@ -29,6 +29,18 @@ class TestLexer(unittest.TestCase):
         tokens = Lexer("// hello\nx = 1\n").tokenize()
         self.assertTrue(any(t.type == TokenType.IDENT and t.value == "x" for t in tokens))
 
+    def test_suffisso_f_e_un_solo_numero(self):
+        """2.5f e 90f sono float interi: la f non resta un token a parte."""
+        tokens = [t for t in Lexer("2.5f\n90f\n").tokenize() if t.type == TokenType.FLOAT]
+        self.assertEqual([t.value for t in tokens], [2.5, 90.0])
+        self.assertFalse(any(t.type == TokenType.IDENT for t in Lexer("2.5f\n").tokenize()))
+
+    def test_f_attaccata_a_un_nome_resta_nome(self):
+        """2fps non e' un float: la f si prende solo se il numero finisce li'."""
+        tokens = Lexer("2fps\n").tokenize()
+        self.assertEqual(tokens[0].type, TokenType.INT)
+        self.assertTrue(any(t.type == TokenType.IDENT and t.value == "fps" for t in tokens))
+
 
 class TestParser(unittest.TestCase):
     def test_var_and_if(self):
@@ -141,6 +153,34 @@ print.log("HI-" + name)
         with patch("builtins.input", return_value="andy"), patch("sys.stdout", buf):
             Interpreter().run_source(src)
         self.assertIn("HI-andy", buf.getvalue())
+
+    def test_stile_del_tutorial(self):
+        """Dichiarazioni senza '=', float con la f, risultati su print.output."""
+        buf = io.StringIO()
+        src = """
+int vite 3
+float velocita 2.5f
+string titolo "livello 1"
+bool vivo true
+
+vite += 1
+print.output("vite:", vite)
+print.output("velocita:", velocita)
+print.output("titolo:", titolo, vivo)
+"""
+        with patch("sys.stdout", buf):
+            Interpreter().run_source(src)
+        out = buf.getvalue()
+        self.assertIn("vite: 4", out)
+        self.assertIn("velocita: 2.5", out)
+        self.assertIn("titolo: livello 1 true", out)
+
+    def test_float_con_f_dentro_una_chiamata(self):
+        """print.output("x:", 2.5f) non deve essere un errore di sintassi."""
+        buf = io.StringIO()
+        with patch("sys.stdout", buf):
+            Interpreter().run_source('print.output("x:", 2.5f, 90f)\n')
+        self.assertIn("x: 2.5 90.0", buf.getvalue())
 
     def test_function(self):
         buf = io.StringIO()

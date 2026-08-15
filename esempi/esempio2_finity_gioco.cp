@@ -11,13 +11,13 @@ on start {
     player.transform.position == x 380; y 280;
     player.ActorColor(#FFB74D)
     player.width set 48
-    player.height = 48
+    player.height set 48
     // le collisioni sono precompilate (width/height)
 }
 
 on update {
-    float speed = 220
-    float dt = finityengine.Time.deltaTime
+    float speed 220f
+    float dt finityengine.Time.deltaTime
     if (finityengine.Input.GetKey("d") or finityengine.Input.GetKey("right")) {
         player.move(speed * dt, 0)
     }

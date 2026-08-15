@@ -5,9 +5,9 @@ import math
 
 sdgame.init(640, 480, "sdgame demo")
 
-float x = 100
-float y = 100
-float speed = 200
+float x 100f
+float y 100f
+float speed 200f
 
 while (sdgame.is_running()) {
     sdgame.tick(60)

@@ -18,7 +18,7 @@ on start {
 
 on fixedupdate {
     // dt qui vale sempre 1/60: la velocita' non cambia con gli FPS
-    float speed = 240
+    float speed 240f
     if (finityengine.Input.GetKey("d") or finityengine.Input.GetKey("right")) {
         move(speed * dt, 0)
     }

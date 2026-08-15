@@ -28,6 +28,6 @@ on update {
     if (finityengine.Input.GetKeyDown("t")) {
         // due assi in una riga, e l'ultimo numero e' la durata in secondi:
         // la testa arriva a destinazione in mezzo secondo invece che di colpo
-        player.rb.trasform.part("testa", y += 90, x -= 10, 0.5)
+        player.rb.trasform.part("testa", y += 90, x -= 10, 0.5f)
     }
 }

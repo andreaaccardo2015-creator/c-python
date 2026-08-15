@@ -374,6 +374,11 @@ class Lexer:
             while self._peek().isdigit():
                 self._advance()
         raw = self.source[start : self.pos]
+        # Suffisso float: 2.5f, 90f. Non lo consumiamo se attaccato a un nome
+        # (2fps sarebbe un altro token), cosi' "2.5f" resta un numero solo.
+        if self._peek() in ("f", "F") and not (self._peek(1).isalnum() or self._peek(1) == "_"):
+            self._advance()
+            return Token(TokenType.FLOAT, float(raw), line, col)
         if is_float:
             return Token(TokenType.FLOAT, float(raw), line, col)
         return Token(TokenType.INT, int(raw), line, col)
