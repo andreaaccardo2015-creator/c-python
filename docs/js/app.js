@@ -4,8 +4,10 @@
 
   const KEY_ACCOUNTS = "cpy.accounts.v1";
   const KEY_SESSION = "cpy.session.v1";
+  const KEY_GH_WAIT = "cpy.gh.wait.v1";
   const USER_RE = /^[A-Za-z0-9_]{3,20}$/;
-  const GH_RE = /^[A-Za-z0-9-]{1,39}$/;
+  const GH_REPO = "andreaaccardo2015-creator/c-python";
+  const GH_WAIT_MS = 180000;
 
   function t(key) {
     return I.t(key);
@@ -53,10 +55,10 @@
   }
 
   let settingsTab = "page";
-  let pendingGithub = null;
   let authError = "";
   let settingsOpen = false;
-  let lastGhUser = "";
+  let ghWait = null;
+  let ghTimer = null;
 
   function gearSvg() {
     return '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.2 7.2 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.9 2h-3.8a.5.5 0 0 0-.5.42l-.36 2.54c-.58.22-1.13.54-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.8 8.48a.5.5 0 0 0 .12.64L4.95 10.7c-.04.31-.06.63-.06.94s.02.63.06.94L2.92 14.16a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.43.34.7.22l2.39-.96c.5.4 1.05.72 1.63.94l.36 2.54c.05.24.26.42.5.42h3.8c.24 0 .45-.18.5-.42l.36-2.54c.58-.22 1.13-.54 1.63-.94l2.39.96c.27.12.56.02.7-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/></svg>';
@@ -96,7 +98,6 @@
     settingsTab = tab || settingsTab || "page";
     settingsOpen = true;
     authError = "";
-    pendingGithub = null;
     renderSettings();
     const box = document.getElementById("cpy-settings");
     if (box) box.hidden = false;
@@ -141,15 +142,11 @@
       const gh = user.github
         ? `<p class="muted">${t("auth.github.linked")}: <strong>@${escapeHtml(user.github.login)}</strong></p>
            <button type="button" class="btn btn-ghost" data-act="unlink-gh">${t("auth.github.unlink")}</button>`
-        : `<div class="auth-block">
-             <label>${t("auth.github.user")}<input id="gh-user" autocomplete="username" value="${escapeHtml(lastGhUser)}"></label>
-             <button type="button" class="btn btn-ghost" data-act="lookup-gh">${t("auth.github.go")}</button>
-           </div>`;
+        : githubConnectHtml();
       account = `
         <p>${t("auth.hello")} <strong>${escapeHtml(user.username)}</strong></p>
         ${userChipHtml(user)}
         ${gh}
-        ${pendingGithubCard()}
         <button type="button" class="btn btn-primary" data-act="logout">${t("auth.logout")}</button>`;
     } else {
       account = `
@@ -171,9 +168,7 @@
         </div>
         <div class="auth-form">
           <h3>${t("auth.github")}</h3>
-          <label>${t("auth.github.user")}<input id="gh-user" autocomplete="username" value="${escapeHtml(lastGhUser)}"></label>
-          <button type="button" class="btn btn-win" data-act="lookup-gh">${t("auth.github.go")}</button>
-          ${pendingGithubCard()}
+          ${githubConnectHtml()}
         </div>`;
     }
 
@@ -232,16 +227,104 @@
     });
   }
 
-  function pendingGithubCard() {
-    if (!pendingGithub) return "";
-    return `<div class="gh-card">
-      <img src="${pendingGithub.avatar}" alt="">
-      <div>
-        <strong>${escapeHtml(pendingGithub.name || pendingGithub.login)}</strong>
-        <div class="muted">@${escapeHtml(pendingGithub.login)}</div>
-      </div>
-      <button type="button" class="btn btn-primary" data-act="confirm-gh">${t("auth.github.confirm")}</button>
-    </div>`;
+  function githubConnectHtml() {
+    if (ghWait) {
+      return `<p>${t("auth.github.wait")}</p>
+        <a class="btn btn-win" href="${escapeHtml(ghWait.url)}" target="_blank" rel="noopener">${t("auth.github.open")}</a>
+        <button type="button" class="btn btn-ghost" data-act="cancel-gh">${t("auth.github.cancel")}</button>`;
+    }
+    return `<p class="muted">${t("auth.github.note")}</p>
+      <button type="button" class="btn btn-win" data-act="start-gh">${t("auth.github.open")}</button>`;
+  }
+
+  function githubIssueUrl(nonce) {
+    const title = "[cpy-verify] " + nonce;
+    const body = "Non cambiare il titolo. Pubblica questa issue: GitHub conferma cosi' che sei tu. Si chiude da sola.\n\nDo not edit the title. Submit this issue so GitHub can confirm it is you. It closes by itself.";
+    const next = "/" + GH_REPO + "/issues/new?title=" + encodeURIComponent(title) + "&body=" + encodeURIComponent(body);
+    return "https://github.com/login?return_to=" + encodeURIComponent(next);
+  }
+
+  function stopGithubWait() {
+    if (ghTimer) clearInterval(ghTimer);
+    ghTimer = null;
+    ghWait = null;
+    sessionStorage.removeItem(KEY_GH_WAIT);
+  }
+
+  function applyGithubIdentity(gh) {
+    const cur = session();
+    if (cur && cur.kind === "local") {
+      const map = accounts();
+      const rec = map[cur.username.toLowerCase()];
+      if (rec) {
+        rec.github = gh;
+        saveAccounts(map);
+      }
+      setSession({ kind: "local", username: cur.username, github: gh });
+    } else {
+      setSession({ kind: "github", username: gh.login, github: gh });
+    }
+  }
+
+  async function pollGithubWait() {
+    if (!ghWait) return;
+    if (Date.now() - ghWait.startedAt > GH_WAIT_MS) {
+      stopGithubWait();
+      fail("auth.github.timeout");
+      return;
+    }
+    try {
+      const res = await fetch("https://api.github.com/repos/" + GH_REPO + "/issues?state=all&sort=created&direction=desc&per_page=15");
+      if (!res.ok) return;
+      const issues = await res.json();
+      const want = "[cpy-verify] " + ghWait.nonce;
+      const hit = (issues || []).find((issue) => issue && issue.title === want && issue.user && issue.user.login);
+      if (!hit) return;
+      const created = Date.parse(hit.created_at);
+      if (created && created + 120000 < ghWait.startedAt) return;
+      const profile = await fetch("https://api.github.com/users/" + encodeURIComponent(hit.user.login));
+      const data = profile.ok ? await profile.json() : hit.user;
+      const gh = {
+        login: data.login || hit.user.login,
+        id: data.id || hit.user.id,
+        avatar: data.avatar_url || hit.user.avatar_url,
+        name: data.name || data.login || hit.user.login,
+      };
+      stopGithubWait();
+      applyGithubIdentity(gh);
+      settingsTab = "account";
+      renderSettings();
+    } catch (e) {
+      /* keep waiting */
+    }
+  }
+
+  function startGithubWait() {
+    const nonce = randomSalt().slice(0, 24);
+    const url = githubIssueUrl(nonce);
+    ghWait = { nonce, url, startedAt: Date.now() };
+    sessionStorage.setItem(KEY_GH_WAIT, JSON.stringify(ghWait));
+    window.open(url, "_blank", "noopener");
+    if (ghTimer) clearInterval(ghTimer);
+    ghTimer = setInterval(pollGithubWait, 5000);
+    pollGithubWait();
+    renderSettings();
+  }
+
+  function resumeGithubWait() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(KEY_GH_WAIT) || "null");
+      if (!saved || !saved.nonce || Date.now() - saved.startedAt > GH_WAIT_MS) {
+        sessionStorage.removeItem(KEY_GH_WAIT);
+        return;
+      }
+      ghWait = saved;
+      if (ghTimer) clearInterval(ghTimer);
+      ghTimer = setInterval(pollGithubWait, 5000);
+      pollGithubWait();
+    } catch (e) {
+      sessionStorage.removeItem(KEY_GH_WAIT);
+    }
   }
 
   async function handleForm(act, form) {
@@ -294,7 +377,7 @@
     }
     if (act === "logout") {
       setSession(null);
-      pendingGithub = null;
+      stopGithubWait();
       renderSettings();
       return;
     }
@@ -315,45 +398,13 @@
       renderSettings();
       return;
     }
-    if (act === "lookup-gh") {
-      const input = document.getElementById("gh-user");
-      const login = (input && input.value || "").trim().replace(/^@/, "");
-      lastGhUser = login;
-      if (!login || !GH_RE.test(login)) return fail("auth.err.needuser");
+    if (act === "start-gh") {
       authError = "";
-      try {
-        const res = await fetch("https://api.github.com/users/" + encodeURIComponent(login));
-        if (res.status === 404) return fail("auth.err.gh");
-        if (!res.ok) return fail("auth.err.net");
-        const data = await res.json();
-        pendingGithub = {
-          login: data.login,
-          id: data.id,
-          avatar: data.avatar_url,
-          name: data.name || data.login,
-        };
-        renderSettings();
-      } catch (e) {
-        fail("auth.err.net");
-      }
+      startGithubWait();
       return;
     }
-    if (act === "confirm-gh") {
-      if (!pendingGithub) return;
-      const gh = pendingGithub;
-      pendingGithub = null;
-      const cur = session();
-      if (cur && cur.kind === "local") {
-        const map = accounts();
-        const rec = map[cur.username.toLowerCase()];
-        if (rec) {
-          rec.github = gh;
-          saveAccounts(map);
-        }
-        setSession({ kind: "local", username: cur.username, github: gh });
-      } else {
-        setSession({ kind: "github", username: gh.login, github: gh });
-      }
+    if (act === "cancel-gh") {
+      stopGithubWait();
       renderSettings();
     }
   }
@@ -424,5 +475,6 @@
   I.applyI18n();
   bindFeedback();
   refreshFeedback();
+  resumeGithubWait();
   window.CpyApp = { openSettings, session };
 })();

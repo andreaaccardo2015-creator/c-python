@@ -1,0 +1,32 @@
+name: Close C Python GitHub verify issues
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  close:
+    if: startsWith(github.event.issue.title, '[cpy-verify]')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const n = context.issue.number;
+            const { owner, repo } = context.repo;
+            try {
+              await github.rest.issues.addLabels({
+                owner, repo, issue_number: n, labels: ["cpy-verify"],
+              });
+            } catch (e) {
+              /* label may be missing on first run */
+            }
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: n,
+              body: "Verifica C Python: GitHub ha confermato l'account. Questa issue si chiude da sola.\n\nC Python verification: GitHub confirmed the account. This issue closes itself.",
+            });
+            await github.rest.issues.update({
+              owner, repo, issue_number: n, state: "closed",
+            });
