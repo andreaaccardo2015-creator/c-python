@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>C Python — tutorial</title>
+  <meta name="description" content="Tutorial completo del linguaggio C Python: installazione, sintassi, librerie, sdgame e FinityEngine.">
+  <style>
+    :root {
+      --bg: #14120e;
+      --bg-2: #1c1914;
+      --paper: #f3ead7;
+      --ink: #1a1610;
+      --muted: #8a8174;
+      --line: #2b261e;
+      --amber: #e3a23a;
+      --amber-dim: #8a6418;
+      --green: #8fbc6b;
+      --red: #d36b5a;
+      --blue: #7eb0c9;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "IBM Plex Sans", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--paper);
+      line-height: 1.55;
+    }
+    a { color: var(--amber); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+    nav {
+      position: sticky; top: 0; height: 100vh; overflow: auto;
+      border-right: 1px solid var(--line);
+      background: var(--bg-2);
+      padding: 28px 18px;
+    }
+    nav .brand {
+      font-weight: 700; letter-spacing: .04em; font-size: 15px;
+      color: var(--amber); margin-bottom: 6px;
+    }
+    nav .ver { color: var(--muted); font-size: 12px; margin-bottom: 22px; }
+    nav a {
+      display: block; color: #d8cbb3; padding: 6px 8px; border-radius: 6px;
+      font-size: 14px; text-decoration: none;
+    }
+    nav a:hover, nav a.active { background: #2a241a; color: var(--amber); text-decoration: none; }
+    main { max-width: 860px; padding: 48px 40px 96px; }
+    h1 { font-size: 42px; line-height: 1.1; margin: 0 0 12px; letter-spacing: -.03em; }
+    h2 { margin-top: 56px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 26px; }
+    h3 { margin-top: 32px; font-size: 18px; color: #f0e2c4; }
+    p, li { color: #e6dcc8; }
+    .lead { font-size: 19px; color: #cfc3aa; max-width: 40em; }
+    .note, .warn {
+      border-left: 3px solid var(--amber);
+      background: #241e14;
+      padding: 12px 14px;
+      border-radius: 0 8px 8px 0;
+    }
+    .warn { border-left-color: var(--red); background: #2a1714; }
+    pre, code { font-family: "Cascadia Code", "Consolas", "Courier New", monospace; }
+    pre {
+      background: #0e0c0a;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px 18px;
+      overflow: auto;
+      font-size: 13.5px;
+      line-height: 1.45;
+    }
+    code { color: #f2d9a0; }
+    pre code { color: #efe6d4; }
+    .k { color: #d38b4a; }
+    .t { color: #7eb0c9; }
+    .s { color: #8fbc6b; }
+    .c { color: #7a7266; }
+    .n { color: #e3a23a; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card {
+      border: 1px solid var(--line); border-radius: 10px; padding: 16px;
+      background: var(--bg-2);
+    }
+    .card h3 { margin-top: 0; }
+    .hero-meta { color: var(--muted); font-size: 13px; margin-top: 18px; }
+    footer { margin-top: 72px; color: var(--muted); font-size: 13px; }
+    @media (max-width: 860px) {
+      .wrap { grid-template-columns: 1fr; }
+      nav { position: relative; height: auto; }
+      main { padding: 28px 18px 72px; }
+      .cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <div class="brand">C PYTHON</div>
+  <div class="ver">tutorial · v0.3.4</div>
+  <a href="#cos-e">Cos’è</a>
+  <a href="#installazione">Installazione</a>
+  <a href="#primo-programma">Primo programma</a>
+  <a href="#sintassi">Sintassi</a>
+  <a href="#funzioni">Funzioni e classi</a>
+  <a href="#librerie">Librerie</a>
+  <a href="#sdgame">Giochi 2D · sdgame</a>
+  <a href="#finity">FinityEngine</a>
+  <a href="#animazioni">Animazioni e collisioni</a>
+  <a href="#rigidbody">Rigidbody e parti</a>
+  <a href="#cli">Comandi</a>
+  <a href="#riferimento">Riferimento rapido</a>
+</nav>
+<main>
+  <h1>Tutorial C Python</h1>
+  <p class="lead">C Python è un linguaggio per script e giochi: la sintassi sta a metà tra Python e C#, i file sono <code>.cp</code> o <code>.cpy</code>, e si lanciano con <code>cpy run</code>.</p>
+  <p class="hero-meta">Non è l’interprete ufficiale di Python (CPython). È un linguaggio a sé, con installer proprio.</p>
+
+  <h2 id="cos-e">Cos’è</h2>
+  <p>Con C Python scrivi programmi da terminale, minigiochi 2D e script per modelli 3D in FinityEngine. L’interprete capisce tipi dichiarati (<code>int</code>, <code>float</code>, <code>string</code>), blocchi con graffe o indentazione, e moduli come <code>time</code>, <code>math</code>, <code>sdgame</code>, <code>finityengine</code>.</p>
+  <div class="cards">
+    <div class="card">
+      <h3>File</h3>
+      <p>Estensioni <code>.cp</code> e <code>.cpy</code>. I commenti sono <code>//</code> e stanno sotto gli import.</p>
+    </div>
+    <div class="card">
+      <h3>Esecuzione</h3>
+      <p>Dopo l’install: <code>cpy run tuoFile.cp</code> in un terminale nuovo.</p>
+    </div>
+  </div>
+
+  <h2 id="installazione">Installazione</h2>
+  <p>I file pronti stanno solo qui, nella cartella <code>installer/</code>:</p>
+  <p><a href="https://github.com/andreaaccardo2015-creator/cpython-setup">github.com/andreaaccardo2015-creator/cpython-setup</a></p>
+  <h3>Windows</h3>
+  <ol>
+    <li>Scarica <code>Cpython_interpreter_64x_win.exe</code>.</li>
+    <li>Doppio click: installa demone, comando <code>cpy</code> e associazione dei file.</li>
+    <li>Apri un <strong>nuovo</strong> terminale e prova <code>cpy version</code>.</li>
+  </ol>
+  <h3>macOS</h3>
+  <ol>
+    <li>Scarica <code>Cpython_interpreter_64x_win.dmg</code>.</li>
+    <li>Apri il disco e trascina <code>Cpython_interpreter.app</code> in Applicazioni.</li>
+    <li>Al primo avvio, se macOS blocca: Impostazioni → Privacy e sicurezza → Apri comunque.</li>
+    <li>Poi: <code>cpy version</code> oppure <code>open -a Cpython_interpreter</code>.</li>
+  </ol>
+  <p class="note">Alcuni antivirus segnalano l’exe PyInstaller come sospetto. È un falso positivo noto: il codice è pubblico, licenza MIT. Dettagli in <a href="https://github.com/andreaaccardo2015-creator/c-python/blob/main/ANTIVIRUS.md">ANTIVIRUS.md</a>.</p>
+
+  <h2 id="primo-programma">Primo programma</h2>
+  <p>Crea <code>ciao.cp</code> e lancialo con <code>cpy run ciao.cp</code>.</p>
+<pre><code><span class="k">import</span> time
+
+<span class="c">// Il primo commento sta sempre sotto gli import</span>
+
+print.log(<span class="s">"ciao da C Python"</span>)
+string nome = getinput(<span class="s">"come ti chiami? "</span>)
+print.output(<span class="s">"piacere,"</span>, nome)
+time.breakcode(<span class="n">1</span>)</code></pre>
+  <ul>
+    <li><code>print.log(...)</code> scrive una riga.</li>
+    <li><code>print.output(...)</code> scrive più valori sulla stessa riga.</li>
+    <li><code>getinput("testo")</code> chiede una stringa. Aggiungi <code>+ f</code> per un decimale: <code>float n = getinput("n?" + f)</code>.</li>
+    <li><code>time.breakcode(1)</code> aspetta un secondo (alias: <code>time.sleep</code>).</li>
+  </ul>
+
+  <h2 id="sintassi">Sintassi</h2>
+  <h3>Tipi e variabili</h3>
+<pre><code><span class="t">int</span> vite = <span class="n">3</span>
+<span class="t">float</span> velocita = <span class="n">2.5</span>
+<span class="t">string</span> titolo = <span class="s">"livello 1"</span>
+<span class="t">bool</span> vivo = <span class="k">true</span>
+<span class="t">list</span> numeri = [<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>]
+vite += <span class="n">1</span>
+velocita *= <span class="n">2</span></code></pre>
+  <p>Operatori: <code>+</code> <code>-</code> <code>*</code> <code>/</code> <code>%</code>, confronti <code>== != &lt; &gt; &lt;= &gt;=</code>, assegnamenti <code>+= -= *= /=</code>, logica <code>and</code> <code>or</code> <code>not</code>. Costanti: <code>true</code>, <code>false</code>, <code>null</code>. I colori si scrivono <code>#FFB74D</code>.</p>
+
+  <h3>If, while, for</h3>
+  <p>Le graffe sono consigliate. L’<code>if</code> vuole la condizione tra parentesi. Un solo ramo: puoi omettere le graffe se il corpo è una riga.</p>
+<pre><code><span class="k">if</span> (vite &lt;= <span class="n">0</span>) {
+    print.log(<span class="s">"game over"</span>)
+} <span class="k">else</span> {
+    print.log(<span class="s">"ancora in gioco"</span>)
+}
+
+<span class="t">int</span> i = <span class="n">0</span>
+<span class="k">while</span> (i &lt; <span class="n">3</span>) {
+    print.log(i)
+    i += <span class="n">1</span>
+}
+
+<span class="k">for</span> n <span class="k">in</span> range(<span class="n">5</span>) {
+    print.log(n)
+}</code></pre>
+  <p>Dentro i cicli: <code>break</code> e <code>continue</code>.</p>
+
+  <h3>Nomi</h3>
+  <p>Maiuscole e minuscole non contano: <code>Player</code> e <code>player</code> sono lo stesso nome. Vale anche per <code>trasform</code> / <code>transform</code>.</p>
+
+  <h2 id="funzioni">Funzioni e classi</h2>
+<pre><code><span class="k">fun</span> add(<span class="t">int</span> a, <span class="t">int</span> b)
+    <span class="k">return</span> <span class="t">int</span> a + b
+
+<span class="k">fun</span> saluta(<span class="t">string</span> nome) {
+    print.log(<span class="s">"ciao"</span>, nome)
+}
+
+print.log(add(<span class="n">2</span>, <span class="n">5</span>))</code></pre>
+  <p>Le funzioni solo numeriche possono essere accelerate dal JIT LLVM (<code>cpython --jit</code>, attivo di default).</p>
+<pre><code><span class="k">class</span> Punto {
+    <span class="k">fun</span> Punto(<span class="t">float</span> x, <span class="t">float</span> y) {
+        this.x = x
+        this.y = y
+    }
+}</code></pre>
+
+  <h2 id="librerie">Librerie</h2>
+  <p>Si importano in cima al file. I commenti vanno <strong>sotto</strong> gli import.</p>
+  <table>
+    <tr><th>Modulo</th><th>A cosa serve</th><th>Esempi</th></tr>
+    <tr><td><code>time</code></td><td>Pause e orologi</td><td><code>breakcode</code>, <code>sleep</code>, <code>now</code>, <code>clock</code></td></tr>
+    <tr><td><code>math</code></td><td>Matematica</td><td><code>clamp</code>, <code>sin</code>, <code>cos</code>, <code>lerp</code>, <code>dist</code>, <code>sqrt</code></td></tr>
+    <tr><td><code>random</code></td><td>Casuale</td><td><code>int(a, b)</code>, <code>float(a, b)</code>, <code>choice</code>, <code>shuffle</code></td></tr>
+    <tr><td><code>file</code></td><td>File di testo</td><td><code>read</code>, <code>write</code>, <code>append</code>, <code>exists</code>, <code>lines</code></td></tr>
+    <tr><td><code>json</code></td><td>JSON</td><td><code>encode</code>, <code>decode</code>, <code>load</code>, <code>save</code></td></tr>
+    <tr><td><code>audio</code></td><td>Suoni</td><td><code>play</code>, <code>music</code>, <code>stop_music</code></td></tr>
+    <tr><td><code>sdgame</code></td><td>Gioco 2D a mano</td><td>finestra, tasti, rettangoli, testo</td></tr>
+    <tr><td><code>finityengine</code></td><td>Motore / editor</td><td>actor, input, fisica, animazioni</td></tr>
+  </table>
+  <p>Funzioni sempre disponibili, senza import: <code>print</code>, <code>getinput</code>, <code>getcollision</code>, <code>animation</code>, <code>rigidbody</code>, <code>range</code>, <code>len</code>, <code>str</code>, <code>int</code>, <code>float</code>, <code>bool</code>.</p>
+
+  <h2 id="sdgame">Giochi 2D · sdgame</h2>
+  <p>Per un gioco 2D senza editor: apri la finestra tu, disegni ogni frame, chiudi alla fine.</p>
+<pre><code><span class="k">import</span> sdgame
+<span class="k">import</span> math
+
+<span class="c">// Quadrato che si muove con WASD</span>
+
+sdgame.init(<span class="n">640</span>, <span class="n">480</span>, <span class="s">"demo"</span>)
+<span class="t">float</span> x = <span class="n">100</span>
+<span class="t">float</span> y = <span class="n">100</span>
+
+<span class="k">while</span> (sdgame.is_running()) {
+    sdgame.tick(<span class="n">60</span>)
+    <span class="k">if</span> (sdgame.getkey(<span class="s">"d"</span>)) { x = x + <span class="n">200</span> * sdgame.dt() }
+    <span class="k">if</span> (sdgame.getkey(<span class="s">"a"</span>)) { x = x - <span class="n">200</span> * sdgame.dt() }
+    x = math.clamp(x, <span class="n">0</span>, sdgame.width() - <span class="n">40</span>)
+    sdgame.fill(<span class="n">#1A1F2B</span>)
+    sdgame.rect(x, y, <span class="n">40</span>, <span class="n">40</span>, <span class="n">#FFB74D</span>)
+    sdgame.text(<span class="s">"A / D per muoverti"</span>, <span class="n">16</span>, <span class="n">16</span>, <span class="n">#FFFFFF</span>, <span class="n">22</span>)
+    sdgame.flip()
+}
+sdgame.quit()</code></pre>
+  <p>Altri disegni: <code>circle</code>, <code>line</code>, <code>image</code>. Input: <code>getkey</code> (tenuto), <code>getkeydown</code> (appena premuto), <code>mouse_x</code>, <code>mouse_y</code>, <code>mouse_button</code>.</p>
+
+  <h2 id="finity">FinityEngine</h2>
+  <p>Quando lo script vive nell’editor, la finestra la crea il motore. Non serve <code>screen.create</code>. Ogni script è figlio di un solo modello, tranne quelli agganciati all’intera scena.</p>
+  <ul>
+    <li>Figlio del modello: non dichiari <code>actor</code>. <code>move</code>, <code>animation</code> e <code>getcollision</code> parlano di “questo” modello.</li>
+    <li>Figlio della scena: i modelli si nominano per intero (<code>player.rb...</code>).</li>
+    <li>Un solo <code>on start</code>, un solo <code>on update</code>, un solo <code>on fixedupdate</code> per script. Due uguali sono un errore.</li>
+  </ul>
+<pre><code><span class="k">import</span> finityengine
+
+<span class="c">// Script del modello player, stile editor</span>
+
+<span class="k">on</span> start {
+    animation.start(<span class="s">"camminata"</span>)
+}
+
+<span class="k">on</span> fixedupdate {
+    <span class="c">// dt è sempre 1/60: il movimento non dipende dagli FPS</span>
+    <span class="t">float</span> speed = <span class="n">240</span>
+    <span class="k">if</span> (finityengine.Input.GetKey(<span class="s">"d"</span>)) {
+        move(speed * dt, <span class="n">0</span>)
+    }
+}
+
+<span class="k">on</span> update {
+    <span class="k">if</span> (getcollision <span class="s">"muro"</span>) {
+        animation.start(<span class="s">"colpito"</span>)
+    }
+}</code></pre>
+  <p>Fuori dall’editor, in uno script eseguibile da solo, dichiari <code>actor player</code> e alla fine chiami <code>finityengine.Run()</code>.</p>
+  <p>Input: <code>finityengine.Input.GetKey("space")</code> (tenuto), <code>GetKeyDown("space")</code> (una volta). Tempo: <code>finityengine.Time.deltaTime</code> (frame) e <code>fixedDeltaTime</code> (passo fisso).</p>
+
+  <h2 id="animazioni">Animazioni e collisioni</h2>
+  <p>Le clip le assegna l’editor al modello. Lo script le accende e le spegne per nome.</p>
+<pre><code>animation.start(<span class="s">"gira"</span>)
+<span class="k">if</span> (animation.time <span class="s">"2"</span>) {
+    animation.stop(<span class="s">"gira"</span>)
+}</code></pre>
+  <p><code>animation.time "2"</code> è vera quando l’animazione in corso ha raggiunto i 2 secondi. <code>getcollision "muro"</code> è vera se questo modello tocca l’attore chiamato muro. Le parentesi nell’<code>if</code> ci sono, ma la chiamata può stare senza: <code>if (getcollision "muro") { }</code>.</p>
+
+  <h2 id="rigidbody">Rigidbody e parti del rig</h2>
+  <p>Per usare la fisica da script la dichiari tu, anche se lo script è già figlio del modello:</p>
+<pre><code>rigidbody.call(<span class="s">"RB"</span>)
+
+<span class="k">on</span> start {
+    player.rb.trasform.part(<span class="s">"braccio"</span>, y += <span class="n">5</span>)
+}</code></pre>
+  <ul>
+    <li><code>y += 5</code> sposta di 5 sull’asse y.</li>
+    <li><code>y = 0</code> va a una posizione assoluta.</li>
+    <li>Ultimo numero opzionale = durata in secondi: <code>part("testa", y += 90, x -= 10, 0.5)</code>.</li>
+  </ul>
+  <p>Se lanci lo script dall’editor con <code>--ipc-stdio</code>, C Python chiede a FinityEngine l’elenco dei componenti e delle parti. Se manca <code>rigidbody</code> o la parte <code>"braccio"</code>, l’errore arriva subito, con file, riga e colonna.</p>
+
+  <h2 id="cli">Comandi</h2>
+<pre><code>cpy version
+cpy run gioco.cp
+python -m cpython gioco.cp
+python -m cpython --ipc-stdio gioco.cp
+python -m cpython --no-jit gioco.cp</code></pre>
+  <p><code>--ipc-stdio</code> è il modo editor: handshake <code>ready</code> → <code>bindings</code>, poi convalida di actor, componenti e parti del rig. Senza quel flag lo script gira da solo, senza quella verifica.</p>
+
+  <h2 id="riferimento">Riferimento rapido</h2>
+  <table>
+    <tr><th>Scrivi</th><th>Significa</th></tr>
+    <tr><td><code>import nome</code></td><td>Carica un modulo. I commenti vengono dopo.</td></tr>
+    <tr><td><code>int x = 1</code></td><td>Variabile tipizzata.</td></tr>
+    <tr><td><code>fun nome(int a)</code></td><td>Funzione. <code>return</code> per uscire.</td></tr>
+    <tr><td><code>class Nome</code></td><td>Classe. Dentro usi <code>this</code>.</td></tr>
+    <tr><td><code>actor player</code></td><td>Dichiara un attore (script standalone / scena).</td></tr>
+    <tr><td><code>on start { }</code></td><td>Una volta all’avvio. Max uno per script.</td></tr>
+    <tr><td><code>on update { }</code></td><td>Ogni frame, dt variabile.</td></tr>
+    <tr><td><code>on fixedupdate { }</code></td><td>Passo fisso 1/60, per il movimento.</td></tr>
+    <tr><td><code>if (getcollision "muro")</code></td><td>Tocco quell’altro modello?</td></tr>
+    <tr><td><code>animation.start("cammina")</code></td><td>Avvia una clip del modello.</td></tr>
+    <tr><td><code>if (animation.time "2")</code></td><td>La clip è arrivata a 2 secondi?</td></tr>
+    <tr><td><code>rigidbody.call("RB")</code></td><td>Collega il rigidbody come <code>.rb</code>.</td></tr>
+    <tr><td><code>part("braccio", y += 5)</code></td><td>Muove una parte del rig.</td></tr>
+    <tr><td><code>x 380; y 280;</code></td><td>Posizione (dopo <code>==</code> su transform.position).</td></tr>
+  </table>
+  <p class="note">Esempi nel repo sorgente: <a href="https://github.com/andreaaccardo2015-creator/c-python/tree/main/esempi">esempi/</a> — calcolatrice, sdgame, FinityEngine, animazioni, rigidbody.</p>
+
+  <footer>
+    C Python v0.3.4 · licenza MIT ·
+    <a href="https://github.com/andreaaccardo2015-creator/c-python">sorgenti</a> ·
+    <a href="https://github.com/andreaaccardo2015-creator/cpython-setup">download</a>
+  </footer>
+</main>
+</div>
+<script>
+  const links = [...document.querySelectorAll("nav a")];
+  const map = links.map((a) => [a, document.querySelector(a.getAttribute("href"))]);
+  const setActive = () => {
+    let current = map[0][0];
+    for (const [a, el] of map) {
+      if (el && el.getBoundingClientRect().top < 90) current = a;
+    }
+    links.forEach((a) => a.classList.toggle("active", a === current));
+  };
+  document.addEventListener("scroll", setActive, { passive: true });
+  setActive();
+</script>
+</body>
+</html>

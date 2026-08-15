@@ -7,7 +7,7 @@ https://github.com/andreaaccardo2015-creator/cpython-setup
 Dentro c’è **solo** la cartella `installer/`:
 
 - **Windows:** `Cpython_interpreter_64x_win.exe` → doppio click → installa
-- **macOS:** `Cpython_interpreter.app` → trascina in Applicazioni
+- **macOS:** `Cpython_interpreter_64x_win.dmg` → apri e trascina l’app in Applicazioni
 
 Poi, in un nuovo terminale:
 

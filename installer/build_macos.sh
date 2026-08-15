@@ -20,9 +20,9 @@ APP="dist/Cpython_interpreter.app"
 if [[ -d "$APP" ]]; then
   echo "OK: $APP"
   # DMG opzionale
-  if command -v hdiutil >/dev/null 2>&1; then
-    DMG="dist/Cpython_interpreter_macos.dmg"
-    rm -f "$DMG"
+    if command -v hdiutil >/dev/null 2>&1; then
+    DMG="dist/Cpython_interpreter_64x_win.dmg"
+    rm -f "$DMG" dist/Cpython_interpreter_macos.dmg
     hdiutil create -volname "C Python" -srcfolder "$APP" -ov -format UDZO "$DMG"
     echo "OK: $DMG"
   fi

@@ -81,13 +81,11 @@ jobs:
       - name: Build .app
         run: bash installer/build_macos.sh
 
-      - name: Upload .app
+      - name: Upload DMG
         uses: actions/upload-artifact@v4
         with:
-          name: Cpython_interpreter_macos_app
-          path: |
-            dist/Cpython_interpreter.app
-            dist/Cpython_interpreter_macos.dmg
+          name: Cpython_interpreter_macos_dmg
+          path: dist/Cpython_interpreter_64x_win.dmg
           if-no-files-found: error
 
   release:
@@ -109,10 +107,7 @@ jobs:
           cp artifacts/CPython_Setup/CPython_Setup.exe out/
           cp artifacts/CPython_Setup/CPython_Setup.exe.sha256 out/ || true
           cp artifacts/Cpython_interpreter_64x_win/Cpython_interpreter_64x_win.exe out/ || true
-          if [ -d artifacts/Cpython_interpreter_macos_app/Cpython_interpreter.app ]; then
-            (cd artifacts/Cpython_interpreter_macos_app && zip -r "$GITHUB_WORKSPACE/out/Cpython_interpreter_macos.app.zip" Cpython_interpreter.app)
-          fi
-          cp artifacts/Cpython_interpreter_macos_app/*.dmg out/ 2>/dev/null || true
+          cp artifacts/Cpython_interpreter_macos_dmg/Cpython_interpreter_64x_win.dmg out/ || true
           ls -la out
           echo "sha256=$(sha256sum out/CPython_Setup.exe | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
@@ -133,8 +128,8 @@ jobs:
             Interprete nudo (senza installer): `Cpython_interpreter_64x_win.exe`.
 
             ## macOS
-            Scarica **Cpython_interpreter_macos.dmg** (o lo zip `.app`), trascina
-            `Cpython_interpreter.app` in Applicazioni, poi al primo avvio se
+            Scarica **Cpython_interpreter_64x_win.dmg**, aprilo e trascina
+            `Cpython_interpreter.app` in Applicazioni. Al primo avvio se
             Gatekeeper blocca: Impostazioni → Privacy e sicurezza → Apri comunque.
 
             ## Verifica del file Windows
