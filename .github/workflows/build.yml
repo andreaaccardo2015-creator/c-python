@@ -85,7 +85,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Cpython_interpreter_macos_dmg
-          path: dist/Cpython_interpreter_64x_win.dmg
+          path: dist/Cpython_interpreter_macos.dmg
           if-no-files-found: error
 
   release:
@@ -107,7 +107,7 @@ jobs:
           cp artifacts/CPython_Setup/CPython_Setup.exe out/
           cp artifacts/CPython_Setup/CPython_Setup.exe.sha256 out/ || true
           cp artifacts/Cpython_interpreter_64x_win/Cpython_interpreter_64x_win.exe out/ || true
-          cp artifacts/Cpython_interpreter_macos_dmg/Cpython_interpreter_64x_win.dmg out/ || true
+          cp artifacts/Cpython_interpreter_macos_dmg/Cpython_interpreter_macos.dmg out/ || true
           ls -la out
           echo "sha256=$(sha256sum out/CPython_Setup.exe | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
@@ -128,9 +128,10 @@ jobs:
             Interprete nudo (senza installer): `Cpython_interpreter_64x_win.exe`.
 
             ## macOS
-            Scarica **Cpython_interpreter_64x_win.dmg**, aprilo e trascina
-            `Cpython_interpreter.app` in Applicazioni. Al primo avvio se
-            Gatekeeper blocca: Impostazioni → Privacy e sicurezza → Apri comunque.
+            Scarica **Cpython_interpreter_macos.dmg** e aprilo.
+            Doppio click su **Cpython_interpreter_macos.app**: si copia da sola
+            in Applicazioni, attiva demone e `cpy`, e stacca il disco.
+            Se Gatekeeper blocca: Impostazioni → Privacy e sicurezza → Apri comunque.
 
             ## Verifica del file Windows
             SHA256 di `CPython_Setup.exe`:

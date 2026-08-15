@@ -103,7 +103,7 @@ exe = EXE(
 
 app = BUNDLE(
     exe,
-    name="Cpython_interpreter.app",
+    name="Cpython_interpreter_macos.app",
     icon=icon,
     bundle_identifier="com.cpython.interpreter",
     info_plist={

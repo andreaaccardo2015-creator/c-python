@@ -39,5 +39,42 @@ class TestInstalledVersion(unittest.TestCase):
                 self.assertFalse(install.is_installed())
 
 
+class TestMacDmgInstall(unittest.TestCase):
+    def test_bundle_path_is_detected(self):
+        from daemon.paths import mac_app_bundle_from_exe
+
+        exe = Path("/Volumes/C Python/Cpython_interpreter_macos.app/Contents/MacOS/Cpython_interpreter")
+        bundle = mac_app_bundle_from_exe(exe)
+        self.assertIsNotNone(bundle)
+        self.assertEqual(bundle.name, "Cpython_interpreter_macos.app")
+
+    def test_volumes_path_is_a_dmg(self):
+        from daemon.paths import is_running_from_dmg
+
+        exe = Path("/Volumes/C Python/Cpython_interpreter_macos.app/Contents/MacOS/Cpython_interpreter")
+        self.assertTrue(is_running_from_dmg(exe))
+
+    def test_applications_path_is_not_a_dmg(self):
+        from daemon.paths import is_running_from_dmg
+
+        exe = Path("/Applications/Cpython_interpreter_macos.app/Contents/MacOS/Cpython_interpreter")
+        self.assertFalse(is_running_from_dmg(exe))
+
+    def test_maybe_install_from_dmg_is_noop_off_mac(self):
+        self.assertIsNone(install.maybe_install_from_dmg([]))
+
+    def test_copy_skips_when_already_at_destination(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "Cpython_interpreter_macos.app"
+            (src / "Contents" / "MacOS").mkdir(parents=True)
+            (src / "Contents" / "MacOS" / "Cpython_interpreter").write_text("x", encoding="utf-8")
+            dests = [src]
+            with patch.object(install, "mac_app_install_destinations", return_value=dests):
+                with patch.object(install, "mac_app_bundle_from_exe", return_value=src):
+                    out = install.install_app_to_applications(src / "Contents" / "MacOS" / "Cpython_interpreter")
+            self.assertEqual(out, src)
+            self.assertTrue((src / "Contents" / "MacOS" / "Cpython_interpreter").is_file())
+
+
 if __name__ == "__main__":
     unittest.main()

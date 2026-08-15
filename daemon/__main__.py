@@ -50,6 +50,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--tray", action="store_true", help="Mostra icona nella tray di sistema")
     parser.add_argument("--install", action="store_true", help="Installa su questo PC")
     parser.add_argument("--uninstall", action="store_true", help="Disinstalla servizio")
+    parser.add_argument(
+        "--from-dmg-install",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
     args = parser.parse_args(argv)
 
     if args.install:
@@ -62,12 +67,16 @@ def main(argv: list[str] | None = None) -> int:
 
         return do_uninstall()
 
-    # Default EXE: installa se serve, poi demone invisibile (niente popup)
+    # Default EXE: se parte dal .dmg, prima si sposta in Applicazioni.
     if not args.daemon and getattr(sys, "frozen", False):
-        from .install import is_installed, do_install
+        from .install import is_installed, do_install, maybe_install_from_dmg
         from .tray import is_daemon_alive, run_daemon
         from .watcher import start_background_monitor
         from .associate import register_file_association, notify_shell_change
+
+        relocated = maybe_install_from_dmg(argv)
+        if relocated is not None:
+            return relocated
 
         if not is_installed():
             rc = do_install()

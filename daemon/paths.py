@@ -24,6 +24,35 @@ def install_root() -> Path:
     return Path(xdg) / "CPython"
 
 
+# Nome del bundle macOS (l'equivalente dell'exe Windows).
+MAC_APP_BUNDLE = "Cpython_interpreter_macos.app"
+MAC_APP_INNER = "Cpython_interpreter"
+
+
+def mac_app_bundle_from_exe(exe: Path | None = None) -> Path | None:
+    """Se l'eseguibile sta in Foo.app/Contents/MacOS, ritorna Foo.app."""
+    path = Path(exe or sys.executable).resolve()
+    parts = list(path.parts)
+    for i, part in enumerate(parts):
+        if str(part).endswith(".app"):
+            return Path(*parts[: i + 1])
+    return None
+
+
+def is_running_from_dmg(exe: Path | None = None) -> bool:
+    """True se l'app e' lanciata dal disco del .dmg (/Volumes/...)."""
+    path = mac_app_bundle_from_exe(exe) or Path(exe or sys.executable).resolve()
+    return "Volumes" in Path(path).parts[:3]
+
+
+def mac_app_install_destinations() -> list[Path]:
+    """Prima /Applicazioni (quella del Finder), poi ~/Applications."""
+    return [
+        Path("/Applications") / MAC_APP_BUNDLE,
+        Path.home() / "Applications" / MAC_APP_BUNDLE,
+    ]
+
+
 def bundle_root() -> Path:
     """Root risorse (dev = repo, frozen = _MEIPASS o Contents/Resources)."""
     if is_frozen():
@@ -31,7 +60,7 @@ def bundle_root() -> Path:
         if meipass:
             return Path(meipass)
         exe = Path(sys.executable).resolve()
-        # .app: .../Cpython_interpreter.app/Contents/MacOS/exe
+        # .app: .../Nome.app/Contents/MacOS/exe
         if sys.platform == "darwin" and "Contents/MacOS" in str(exe):
             resources = exe.parent.parent / "Resources"
             if resources.is_dir():
@@ -44,12 +73,18 @@ def app_executable() -> Path:
     """Percorso dell'eseguibile installato / bundle."""
     root = install_root()
     if sys.platform == "darwin":
-        for p in (
-            Path.home() / "Applications" / "Cpython_interpreter.app" / "Contents" / "MacOS" / "Cpython_interpreter",
-            Path("/Applications/Cpython_interpreter.app/Contents/MacOS/Cpython_interpreter"),
-            root / "Cpython_interpreter.app" / "Contents" / "MacOS" / "Cpython_interpreter",
-            root / "Cpython_interpreter",
-        ):
+        names = (MAC_APP_BUNDLE, "Cpython_interpreter.app")
+        candidates: list[Path] = []
+        for bundle in names:
+            candidates.extend(
+                [
+                    Path("/Applications") / bundle / "Contents" / "MacOS" / MAC_APP_INNER,
+                    Path.home() / "Applications" / bundle / "Contents" / "MacOS" / MAC_APP_INNER,
+                    root / bundle / "Contents" / "MacOS" / MAC_APP_INNER,
+                ]
+            )
+        candidates.append(root / MAC_APP_INNER)
+        for p in candidates:
             if p.is_file():
                 return p
     else:

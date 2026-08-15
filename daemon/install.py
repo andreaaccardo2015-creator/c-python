@@ -11,7 +11,18 @@ from pathlib import Path
 from cpython import __version__
 
 from .associate import notify_shell_change, register_file_association, register_startup, unregister_startup
-from .paths import app_executable, bundle_root, ensure_install_dirs, install_root, is_frozen
+from .paths import (
+    MAC_APP_BUNDLE,
+    MAC_APP_INNER,
+    app_executable,
+    bundle_root,
+    ensure_install_dirs,
+    install_root,
+    is_frozen,
+    is_running_from_dmg,
+    mac_app_bundle_from_exe,
+    mac_app_install_destinations,
+)
 from .tray import is_daemon_alive, start_daemon_detached
 
 MARKER = "installed.flag"
@@ -28,6 +39,111 @@ def is_installed() -> bool:
         return marker.read_text(encoding="utf-8").strip() == __version__
     except OSError:
         return False
+
+
+def maybe_install_from_dmg(argv: list[str] | None = None) -> int | None:
+    """Se l'app e' lanciata dal .dmg, copiala in Applicazioni e rilanciala.
+
+    Ritorna un exit code se QUESTO processo deve uscire (ha gia' avviato
+    la copia in Applicazioni). Ritorna None se si continua qui.
+    """
+    if sys.platform != "darwin" or not is_frozen():
+        return None
+    args = list(argv or [])
+    if "--from-dmg-install" in args:
+        return None
+    if not is_running_from_dmg():
+        return None
+
+    dest = install_app_to_applications()
+    if dest is None:
+        return None
+
+    rest = [a for a in args if a != "--from-dmg-install"]
+    try:
+        subprocess.Popen(["open", "-n", str(dest), "--args", "--from-dmg-install", *rest])
+    except Exception:
+        return None
+
+    _notify_mac_installed(dest)
+    _eject_own_dmg()
+    return 0
+
+
+def install_app_to_applications(exe: Path | None = None) -> Path | None:
+    """Copia il .app dal disco del DMG in Applicazioni. Ritorna il bundle copiato."""
+    exe = Path(exe or sys.executable).resolve()
+    src = mac_app_bundle_from_exe(exe)
+    if src is None or not src.is_dir():
+        return None
+
+    last_error: Exception | None = None
+    src_resolved = src.resolve()
+    for dest in mac_app_install_destinations():
+        try:
+            if dest.exists() and dest.resolve() == src_resolved:
+                _clear_mac_quarantine(dest)
+                return dest
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            if dest.exists():
+                shutil.rmtree(dest, ignore_errors=True)
+            _copy_app_bundle(src, dest)
+            _clear_mac_quarantine(dest)
+            return dest
+        except Exception as e:
+            last_error = e
+            continue
+    if last_error:
+        print(f"C Python: impossibile copiare in Applicazioni ({last_error})", file=sys.stderr)
+    return None
+
+
+def _copy_app_bundle(src: Path, dest: Path) -> None:
+    ditto = shutil.which("ditto")
+    if ditto:
+        subprocess.run([ditto, str(src), str(dest)], check=True)
+        return
+    shutil.copytree(src, dest, dirs_exist_ok=True)
+
+
+def _clear_mac_quarantine(path: Path) -> None:
+    try:
+        subprocess.run(["xattr", "-cr", str(path)], check=False, capture_output=True)
+    except Exception:
+        pass
+
+
+def _notify_mac_installed(dest: Path) -> None:
+    try:
+        subprocess.run(
+            [
+                "osascript",
+                "-e",
+                'display notification "C Python e\' in Applicazioni e pronto all\'uso." '
+                f'with title "C Python" subtitle "{dest.name}"',
+            ],
+            check=False,
+            capture_output=True,
+        )
+    except Exception:
+        pass
+
+
+def _eject_own_dmg() -> None:
+    bundle = mac_app_bundle_from_exe()
+    if bundle is None:
+        return
+    volume = bundle.parent
+    if "Volumes" not in volume.parts:
+        return
+    try:
+        subprocess.Popen(
+            ["hdiutil", "detach", str(volume), "-quiet", "-force"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except Exception:
+        pass
 
 
 def do_install() -> int:
@@ -213,15 +329,13 @@ endlocal & exit /b 1
 
 
 def _install_mac_app(exe: Path, root: Path) -> Path:
-    """Copia/crea .app in ~/Applications e in Application Support."""
-    # Se siamo gia' dentro un .app bundle
+    """Copia il .app in Applicazioni (e una copia in Application Support)."""
     if "Contents/MacOS" in str(exe):
         app_bundle = exe.parent.parent.parent  # .../Something.app
     else:
-        app_bundle = exe.parent / "Cpython_interpreter.app"
+        app_bundle = exe.parent / MAC_APP_BUNDLE
         if not app_bundle.is_dir():
-            # one-file: solo il binario
-            dest_bin = root / "Cpython_interpreter"
+            dest_bin = root / MAC_APP_INNER
             try:
                 shutil.copy2(exe, dest_bin)
                 dest_bin.chmod(0o755)
@@ -229,18 +343,22 @@ def _install_mac_app(exe: Path, root: Path) -> Path:
                 dest_bin = exe
             return dest_bin
 
-    dest_apps = Path.home() / "Applications"
-    dest_apps.mkdir(parents=True, exist_ok=True)
-    dest = dest_apps / "Cpython_interpreter.app"
-    try:
-        if dest.exists():
-            shutil.rmtree(dest, ignore_errors=True)
-        shutil.copytree(app_bundle, dest, dirs_exist_ok=True)
-    except Exception:
+    dest = None
+    if app_bundle.is_dir():
+        try:
+            here = app_bundle.resolve()
+            for candidate in mac_app_install_destinations():
+                if candidate.exists() and candidate.resolve() == here:
+                    dest = candidate
+                    break
+        except Exception:
+            dest = None
+    if dest is None:
+        dest = install_app_to_applications(exe)
+    if dest is None:
         dest = app_bundle
 
-    # Copia anche sotto Application Support
-    dest2 = root / "Cpython_interpreter.app"
+    dest2 = root / MAC_APP_BUNDLE
     try:
         if dest2.exists() and dest2.resolve() != dest.resolve():
             shutil.rmtree(dest2, ignore_errors=True)
@@ -248,9 +366,8 @@ def _install_mac_app(exe: Path, root: Path) -> Path:
     except Exception:
         pass
 
-    mac_exe = dest / "Contents" / "MacOS" / "Cpython_interpreter"
+    mac_exe = dest / "Contents" / "MacOS" / MAC_APP_INNER
     if not mac_exe.is_file():
-        # nome puo' variare
         macos_dir = dest / "Contents" / "MacOS"
         if macos_dir.is_dir():
             bins = list(macos_dir.iterdir())

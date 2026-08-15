@@ -42,3 +42,4 @@ installer/*.exe
 installer/*.dmg
 installer/*.zip
 installer/Cpython_interpreter.app/
+installer/Cpython_interpreter_macos.app/

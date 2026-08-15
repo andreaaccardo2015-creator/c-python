@@ -48,11 +48,19 @@ def register_file_association(open_command: str | None = None) -> None:
 
 
 def _app_bundle_candidates() -> list[Path]:
-    return [
-        Path.home() / "Applications" / "Cpython_interpreter.app",
-        Path("/Applications/Cpython_interpreter.app"),
-        install_root() / "Cpython_interpreter.app",
-    ]
+    from .paths import MAC_APP_BUNDLE, install_root
+
+    names = (MAC_APP_BUNDLE, "Cpython_interpreter.app")
+    out: list[Path] = []
+    for name in names:
+        out.extend(
+            [
+                Path("/Applications") / name,
+                Path.home() / "Applications" / name,
+                install_root() / name,
+            ]
+        )
+    return out
 
 
 def _try_duti() -> None:
